@@ -233,7 +233,7 @@
                 <artifactId>flyway-maven-plugin</artifactId>
                 <version>${flyway.version}</version>
                 <configuration>
-                    <url>jdbc:mysql://localhost:3306/inventory_saas</url>
+                    <url>jdbc:mysql://localhost:3307/inventory_saas</url>
                     <user>inventory_user</user>
                     <password>inventory_pass</password>
                     <locations>
