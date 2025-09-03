@@ -1,4 +1,5 @@
 # MySQL DDL — SaaS Multi‑Tenant Inventory Platform
+
 _Last updated: 2025-08-31 12:38 UTC_
 
 > **Tenancy model:** single database, **row‑scoped by `tenant_id`** on every business table.  
@@ -8,12 +9,14 @@ _Last updated: 2025-08-31 12:38 UTC_
 ---
 
 ## Session Defaults
+
 ```sql
 SET NAMES utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 SET time_zone = '+00:00';
 ```
 
 ## 1) Core: Tenants, Users, Roles, Orgs & Locations
+
 ```sql
 CREATE TABLE tenant (
   id            BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -68,6 +71,7 @@ CREATE TABLE location (
 ```
 
 ## 2) Catalog: Categories, Items, Variants, Attributes
+
 ```sql
 CREATE TABLE category (
   id            BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -118,6 +122,7 @@ CREATE TABLE item_variant (
 ```
 
 ## 3) Inventory: Ledger, Summary, Serial/Lot (optional)
+
 ```sql
 CREATE TABLE inventory_ledger (
   id            BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -166,6 +171,7 @@ CREATE TABLE lot (
 ```
 
 ## 4) Suppliers, Purchasing & Receiving
+
 ```sql
 CREATE TABLE supplier (
   id            BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -238,6 +244,7 @@ CREATE TABLE receipt_line (
 ```
 
 ## 5) Transfers & Adjustments
+
 ```sql
 CREATE TABLE transfer_order (
   id            BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -293,6 +300,7 @@ CREATE TABLE adjustment_line (
 ```
 
 ## 6) Pricing & Promotions (minimal)
+
 ```sql
 CREATE TABLE price_list (
   id            BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -320,6 +328,7 @@ CREATE TABLE price_list_item (
 ```
 
 ## 7) Integration & Extensibility
+
 ```sql
 -- Outbox for reliable event publishing (Debezium-friendly)
 CREATE TABLE events_outbox (
@@ -349,8 +358,10 @@ CREATE TABLE webhook_subscription (
 ```
 
 ## 8) Indexing & Performance Notes
+
 - Add **covering indexes** for frequent queries (e.g., `(tenant_id, sku)` / `(tenant_id, location_id, variant_id)`).
 - Consider **partitioning `inventory_ledger` by RANGE on `ts`** for high‑volume tenants:
+
 ```sql
 ALTER TABLE inventory_ledger
 PARTITION BY RANGE (TO_DAYS(ts)) (
@@ -360,10 +371,12 @@ PARTITION BY RANGE (TO_DAYS(ts)) (
 ```
 
 ## 9) Referential Integrity & Cascades
+
 - Most child tables use `ON DELETE CASCADE` from parents within the same bounded context.
 - Cross‑context FKs use `ON DELETE RESTRICT` to preserve data integrity.
 
 ## 10) Seed & System Data (examples)
+
 ```sql
 INSERT INTO role(code, name) VALUES
  ('ADMIN','Administrator'),
@@ -377,8 +390,16 @@ INSERT INTO tenant(code, name) VALUES ('demo', 'Demo Tenant');
 ---
 
 ### Notes for SaaS Hardening
+
 - Add **row-level filters** in the application for every query by `tenant_id`.
 - Use **read replicas** for reporting; route via ProxySQL/HAProxy.
 - Encrypt sensitive columns at rest if needed; restrict PII exposure.
 - Implement **per-tenant quotas** and rate-limit policies at the API gateway.
 
+## Updates (2025-09-03)
+
+Important schema and migration notes:
+
+- Several columns in the live development database that were originally defined as MySQL `ENUM` (for example: `tenant.status`, `user_account.status`, `location.type`, `location.status`, and `audit_log.action_type`) were converted to `VARCHAR` via forward Flyway migrations (V4 through V8). The conversions were necessary because the application maps enums using JPA's `@Enumerated(EnumType.STRING)`, which expects string-based columns (VARCHAR) and caused Hibernate schema-validation to fail when the columns remained ENUM.
+- Recommendation: for new schema work, prefer using `VARCHAR` (with a reasonable length) for columns that map to Java enums with `EnumType.STRING`. If you must use `ENUM` at the DDL level, ensure the JPA mapping and Hibernate validation are adjusted accordingly, or skip validation for that table.
+- Migration policy reminder: do not modify already-applied migration files. To change a live database schema, add a new forward migration (e.g., `V9__...sql`) that performs the necessary `ALTER TABLE ... MODIFY COLUMN ... VARCHAR(...)` and run Flyway `migrate`.
