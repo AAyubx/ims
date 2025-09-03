@@ -1,3 +1,4 @@
+````markdown
 # Database Connection Fix
 _Updated: 2025-09-03_
 
@@ -52,3 +53,4 @@ mvn spring-boot:run
 1. The database connection should now work correctly
 2. You can proceed with running Flyway migrations: `mvn flyway:migrate`
 3. Start the Spring Boot application: `mvn spring-boot:run`
+````
