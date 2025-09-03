@@ -15,6 +15,8 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import java.util.regex.Pattern;
 
 @Service
@@ -25,9 +27,9 @@ public class PasswordService {
     private final PasswordEncoder passwordEncoder;
     private final UserPasswordHistoryRepository passwordHistoryRepository;
     private final SystemConfigRepository systemConfigRepository;
-    
+
     private final SecureRandom secureRandom = new SecureRandom();
-    
+
     // Password character sets
     private static final String UPPERCASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     private static final String LOWERCASE = "abcdefghijklmnopqrstuvwxyz";
@@ -45,7 +47,7 @@ public class PasswordService {
 
     public PasswordValidationResult validatePasswordPolicy(String password) {
         PasswordValidationResult result = new PasswordValidationResult();
-        
+
         if (password == null || password.isEmpty()) {
             result.addError(PasswordValidationError.EMPTY_PASSWORD);
             return result;
@@ -62,7 +64,7 @@ public class PasswordService {
         if (password.length() < minLength) {
             result.addError(PasswordValidationError.TOO_SHORT);
         }
-        
+
         if (password.length() > 128) {
             result.addError(PasswordValidationError.TOO_LONG);
         }
@@ -92,23 +94,26 @@ public class PasswordService {
 
     @Transactional(readOnly = true)
     public boolean canReusePassword(Long userId, String newPassword) {
-        if (userId == null) return true;
+        if (userId == null)
+            return true;
 
         int historyCount = getConfigValue(SystemConfig.ConfigKey.PASSWORD_HISTORY_COUNT.getKey(), 3);
-        
+
+        Pageable pageable = PageRequest.of(0, historyCount);
         List<UserPasswordHistory> recentPasswords = passwordHistoryRepository
-                .findRecentPasswordsByUserId(userId, historyCount);
+                .findByUserIdOrderByCreatedAtDesc(userId, pageable);
 
         String hashedNewPassword = hashPassword(newPassword);
-        
+
         return recentPasswords.stream()
-                .noneMatch(history -> passwordEncoder.matches(newPassword, 
-                          new String(history.getPasswordHash())));
+                .noneMatch(history -> passwordEncoder.matches(newPassword,
+                        new String(history.getPasswordHash())));
     }
 
     @Transactional
     public void savePasswordHistory(Long userId, String hashedPassword) {
-        if (userId == null) return;
+        if (userId == null)
+            return;
 
         UserAccount user = new UserAccount();
         user.setId(userId);
@@ -116,7 +121,7 @@ public class PasswordService {
         UserPasswordHistory history = new UserPasswordHistory();
         history.setUser(user);
         history.setPasswordHash(hashedPassword.getBytes());
-        
+
         passwordHistoryRepository.save(history);
         log.debug("Saved password history for user ID: {}", userId);
     }
@@ -131,8 +136,9 @@ public class PasswordService {
     }
 
     public boolean isPasswordExpiringSoon(LocalDateTime passwordExpiresAt, int warningDays) {
-        if (passwordExpiresAt == null) return false;
-        
+        if (passwordExpiresAt == null)
+            return false;
+
         LocalDateTime warningDate = LocalDateTime.now().plusDays(warningDays);
         return passwordExpiresAt.isBefore(warningDate);
     }
@@ -159,12 +165,12 @@ public class PasswordService {
     public String generateResetToken() {
         byte[] tokenBytes = new byte[32];
         secureRandom.nextBytes(tokenBytes);
-        
+
         StringBuilder token = new StringBuilder();
         for (byte b : tokenBytes) {
             token.append(String.format("%02x", b));
         }
-        
+
         return token.toString();
     }
 
@@ -185,21 +191,29 @@ public class PasswordService {
 
     private int calculatePasswordStrength(String password) {
         int strength = 0;
-        
+
         // Length bonus
-        if (password.length() >= 8) strength += 20;
-        if (password.length() >= 12) strength += 10;
-        if (password.length() >= 16) strength += 10;
+        if (password.length() >= 8)
+            strength += 20;
+        if (password.length() >= 12)
+            strength += 10;
+        if (password.length() >= 16)
+            strength += 10;
 
         // Character diversity
-        if (Pattern.compile("[a-z]").matcher(password).find()) strength += 15;
-        if (Pattern.compile("[A-Z]").matcher(password).find()) strength += 15;
-        if (Pattern.compile("[0-9]").matcher(password).find()) strength += 15;
-        if (Pattern.compile("[!@#$%^&*()_+\\-=\\[\\]{}|;:,.<>?]").matcher(password).find()) strength += 15;
+        if (Pattern.compile("[a-z]").matcher(password).find())
+            strength += 15;
+        if (Pattern.compile("[A-Z]").matcher(password).find())
+            strength += 15;
+        if (Pattern.compile("[0-9]").matcher(password).find())
+            strength += 15;
+        if (Pattern.compile("[!@#$%^&*()_+\\-=\\[\\]{}|;:,.<>?]").matcher(password).find())
+            strength += 15;
 
         // Complexity bonus
         int uniqueChars = (int) password.chars().distinct().count();
-        if (uniqueChars >= 8) strength += 10;
+        if (uniqueChars >= 8)
+            strength += 10;
 
         return Math.min(100, strength);
     }

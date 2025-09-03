@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import jakarta.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.Map;
 
@@ -89,7 +89,8 @@ public class AuditService {
             // For login attempts, we might not have full tenant/user context yet
             // Try to get tenant from security context if available
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            if (auth != null && auth.getPrincipal() instanceof UserPrincipal userPrincipal) {
+            if (auth != null && auth.getPrincipal() instanceof UserPrincipal) {
+                UserPrincipal userPrincipal = (UserPrincipal) auth.getPrincipal();
                 Tenant tenant = new Tenant();
                 tenant.setId(userPrincipal.getTenantId());
                 auditLog.setTenant(tenant);
@@ -199,7 +200,8 @@ public class AuditService {
         
         // Get current user and tenant from security context
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof UserPrincipal userPrincipal) {
+        if (auth != null && auth.getPrincipal() instanceof UserPrincipal) {
+            UserPrincipal userPrincipal = (UserPrincipal) auth.getPrincipal();
             
             UserAccount user = new UserAccount();
             user.setId(userPrincipal.getId());
@@ -238,7 +240,8 @@ public class AuditService {
         
         // Get tenant from security context or user context
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof UserPrincipal userPrincipal) {
+        if (auth != null && auth.getPrincipal() instanceof UserPrincipal) {
+            UserPrincipal userPrincipal = (UserPrincipal) auth.getPrincipal();
             Tenant tenant = new Tenant();
             tenant.setId(userPrincipal.getTenantId());
             auditLog.setTenant(tenant);

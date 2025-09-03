@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,8 +24,8 @@ public class LoginAttemptService {
     private final SystemConfigRepository systemConfigRepository;
 
     @Transactional
-    public void recordLoginAttempt(String email, String ipAddress, String userAgent, 
-                                   boolean success, String failureReason) {
+    public void recordLoginAttempt(String email, String ipAddress, String userAgent,
+            boolean success, String failureReason) {
         LoginAttempt attempt = new LoginAttempt();
         attempt.setEmail(email.toLowerCase());
         attempt.setIpAddress(ipAddress);
@@ -33,8 +34,8 @@ public class LoginAttemptService {
         attempt.setFailureReason(failureReason);
 
         loginAttemptRepository.save(attempt);
-        
-        log.info("Recorded login attempt for email: {}, IP: {}, success: {}", 
+
+        log.info("Recorded login attempt for email: {}, IP: {}, success: {}",
                 email, ipAddress, success);
 
         if (!success) {
@@ -46,15 +47,15 @@ public class LoginAttemptService {
     public int getFailedAttemptCount(String email) {
         int lockoutMinutes = getConfigValue(SystemConfig.ConfigKey.LOGIN_LOCKOUT_MINUTES.getKey(), 30);
         LocalDateTime since = LocalDateTime.now().minusMinutes(lockoutMinutes);
-        
-        return loginAttemptRepository.countFailedAttemptsByEmailSince(email.toLowerCase(), since);
+
+        return loginAttemptRepository.countByEmailAndSuccessFalseAndAttemptedAtAfter(email.toLowerCase(), since);
     }
 
     @Transactional(readOnly = true)
     public boolean isAccountLocked(String email) {
         return userAccountRepository.findByEmailIgnoreCase(email)
-                .map(user -> user.getAccountLockedUntil() != null && 
-                           user.getAccountLockedUntil().isAfter(LocalDateTime.now()))
+                .map(user -> user.getAccountLockedUntil() != null &&
+                        user.getAccountLockedUntil().isAfter(LocalDateTime.now()))
                 .orElse(false);
     }
 
@@ -79,22 +80,22 @@ public class LoginAttemptService {
     @Transactional(readOnly = true)
     public List<LoginAttempt> getRecentFailedAttempts(String email, int hours) {
         LocalDateTime since = LocalDateTime.now().minusHours(hours);
-        return loginAttemptRepository.findRecentAttemptsByEmail(email.toLowerCase(), since)
+        return loginAttemptRepository.findByEmailAndAttemptedAtAfterOrderByAttemptedAtDesc(email.toLowerCase(), since)
                 .stream()
                 .filter(attempt -> !attempt.isSuccess())
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public void checkSuspiciousActivity(String email, String ipAddress) {
         int threshold = 20; // Suspicious activity threshold
         LocalDateTime since = LocalDateTime.now().minusHours(1);
-        
+
         int failedAttemptsFromIp = loginAttemptRepository
-                .countFailedAttemptsByIpSince(ipAddress, since);
-        
+                .countByIpAddressAndSuccessFalseAndAttemptedAtAfter(ipAddress, since);
+
         if (failedAttemptsFromIp >= threshold) {
-            log.warn("Suspicious activity detected from IP: {} - {} failed attempts in last hour", 
+            log.warn("Suspicious activity detected from IP: {} - {} failed attempts in last hour",
                     ipAddress, failedAttemptsFromIp);
             // Here you could trigger additional security measures
         }
@@ -112,14 +113,14 @@ public class LoginAttemptService {
                 .ifPresent(user -> {
                     int maxAttempts = getConfigValue(SystemConfig.ConfigKey.LOGIN_MAX_ATTEMPTS.getKey(), 5);
                     int lockoutMinutes = getConfigValue(SystemConfig.ConfigKey.LOGIN_LOCKOUT_MINUTES.getKey(), 30);
-                    
+
                     int failedAttempts = user.getFailedLoginAttempts() + 1;
                     user.setFailedLoginAttempts(failedAttempts);
 
                     if (failedAttempts >= maxAttempts) {
                         LocalDateTime lockoutExpiry = LocalDateTime.now().plusMinutes(lockoutMinutes);
                         user.setAccountLockedUntil(lockoutExpiry);
-                        
+
                         log.warn("Account locked for email: {} after {} failed attempts. " +
                                 "Lockout expires at: {}", email, failedAttempts, lockoutExpiry);
                     }

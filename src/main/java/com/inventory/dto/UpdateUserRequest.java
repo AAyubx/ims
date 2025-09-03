@@ -1,7 +1,7 @@
 package com.inventory.dto;
 
 import com.inventory.entity.UserAccount;
-import jakarta.validation.constraints.Size;
+import javax.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

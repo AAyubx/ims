@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -328,7 +329,7 @@ public class AdminUserService {
 
         return sessionService.getActiveUserSessions(id).stream()
                 .map(UserSessionDto::fromEntity)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @Transactional

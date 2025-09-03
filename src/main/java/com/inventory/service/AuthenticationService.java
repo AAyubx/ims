@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -215,7 +216,7 @@ public class AuthenticationService {
     public List<UserSessionDto> getUserSessions(Long userId) {
         return sessionService.getActiveUserSessions(userId).stream()
                 .map(UserSessionDto::fromEntity)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @Transactional
