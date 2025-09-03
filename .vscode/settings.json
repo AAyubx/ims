@@ -1,0 +1,13 @@
+{
+  // Use the environment's JAVA_HOME so the editor matches your terminal JDK
+  "java.configuration.runtimes": [
+    {
+      "name": "JavaSE-17",
+      "path": "${env:JAVA_HOME}",
+      "default": true
+    }
+  ],
+
+  // Ensure the Java language server uses the same JAVA_HOME
+  "java.jdt.ls.java.home": "${env:JAVA_HOME}"
+}
