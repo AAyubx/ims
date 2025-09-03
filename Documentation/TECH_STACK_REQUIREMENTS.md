@@ -1,12 +1,15 @@
 # Tech Stack Requirements - Inventory Management System
+
 _Last updated: 2025-09-03_
 
 ## Overview
+
 This document outlines the technical stack required to set up and run the Inventory Management System locally for development and testing.
 
 ## Backend Stack
 
 ### Core Framework
+
 - **Java 17+** - Primary programming language
 - **Spring Boot 3.x** - Main application framework
 - **Spring Security 6.x** - Authentication and authorization
@@ -14,27 +17,32 @@ This document outlines the technical stack required to set up and run the Invent
 - **Spring Web** - REST API development
 
 ### Database
+
 - **MySQL 8.0+** - Primary database
 - **Flyway** - Database migration tool
 - **Redis 6.x** - Caching and session management
 
 ### Security & Authentication
+
 - **Spring Security** - Core security framework
 - **JWT (JSON Web Tokens)** - Stateless authentication
 - **BCrypt** - Password hashing
 - **OWASP Java Encoder** - Input sanitization
 
 ### API & Documentation
+
 - **OpenAPI 3** (Swagger) - API documentation
 - **Spring Boot Actuator** - Health checks and monitoring
 
 ### Testing
+
 - **JUnit 5** - Unit testing framework
 - **Mockito** - Mocking framework
 - **Testcontainers** - Integration testing with database
 - **Spring Boot Test** - Integration testing
 
 ### Build & Development Tools
+
 - **Maven 3.8+** - Build and dependency management
 - **Docker & Docker Compose** - Containerization
 - **Git** - Version control
@@ -42,19 +50,24 @@ This document outlines the technical stack required to set up and run the Invent
 ## Local Development Setup Requirements
 
 ### Prerequisites
+
 1. **Java Development Kit (JDK) 17+**
+
    - Oracle JDK or OpenJDK
    - Verify: `java -version`
 
 2. **Maven 3.8+**
+
    - For dependency management and build
    - Verify: `mvn -version`
 
 3. **Docker Desktop**
+
    - For running MySQL and Redis locally
    - Verify: `docker --version`
 
 4. **Git**
+
    - Version control
    - Verify: `git --version`
 
@@ -64,6 +77,7 @@ This document outlines the technical stack required to set up and run the Invent
    - Eclipse IDE for Java Developers
 
 ### Optional Tools
+
 - **Postman** or **Insomnia** - API testing
 - **MySQL Workbench** - Database GUI
 - **Redis Desktop Manager** - Redis GUI
@@ -71,12 +85,14 @@ This document outlines the technical stack required to set up and run the Invent
 ## Local Environment Setup
 
 ### 1. Database Setup (Docker)
+
 ```bash
 # Create docker-compose.yml for local development
 docker-compose up -d mysql redis
 ```
 
 ### 2. Application Properties
+
 ```properties
 # application-local.yml
 spring:
@@ -90,6 +106,7 @@ spring:
 ```
 
 ### 3. Build and Run
+
 ```bash
 # Build the application
 mvn clean compile
@@ -104,18 +121,21 @@ mvn spring-boot:run
 ## Security Configuration Notes
 
 ### Password Policy
+
 - Minimum 8 characters
 - Must contain: uppercase, lowercase, digit, special character
 - Cannot reuse last 3 passwords
 - Password expiry: 60 days (configurable)
 
 ### Authentication Features
+
 - JWT token-based authentication
 - Login attempt limiting (5 attempts)
 - Account lockout mechanism
 - Password reset functionality
 
 ### Audit Trail
+
 - All user actions logged
 - Database change tracking
 - Failed authentication logging
@@ -124,11 +144,13 @@ mvn spring-boot:run
 ## Development Guidelines
 
 ### Code Quality
+
 - **SonarQube** - Code quality analysis
 - **SpotBugs** - Bug detection
 - **Checkstyle** - Code style enforcement
 
 ### Documentation
+
 - JavaDoc for all public methods
 - API documentation with OpenAPI
 - Database schema documentation
@@ -136,12 +158,14 @@ mvn spring-boot:run
 ## Production Considerations
 
 ### Future Scalability
+
 - Kubernetes deployment ready
 - Microservices architecture prepared
 - Message queue integration (Kafka/RabbitMQ)
 - Distributed caching (Redis Cluster)
 
 ### Monitoring & Observability
+
 - Prometheus metrics
 - Grafana dashboards
 - Centralized logging (ELK stack)
@@ -163,14 +187,24 @@ mvn spring-boot:run
 ## GitHub Integration
 
 ### Repository Setup
+
 - Repository: `inventory-management-system`
 - Branch protection rules for `main`
 - Pull request reviews required
 - CI/CD pipeline with GitHub Actions
 
 ### Commit Convention
+
 - Conventional Commits format
 - Signed commits preferred
 - Meaningful commit messages
 
-Would you like me to proceed with creating the Docker Compose file and initial Spring Boot project structure?
+## Updates (2025-09-03)
+
+These are important recent changes to know about when developing and running the project:
+
+- JDK/runtime: The project is run and validated with JDK 17 in developer environments. Make sure `JAVA_HOME` points to a JDK 17 installation before running Maven or Spring Boot. VS Code is configured to use `${env:JAVA_HOME}` for consistency.
+- Database migrations: Several forward Flyway migrations (V4 through V8) were added to convert MySQL `ENUM` columns to `VARCHAR` so they match JPA fields annotated with `@Enumerated(EnumType.STRING)` and to satisfy Hibernate schema validation. Migrations are under `src/main/resources/db/migration/`.
+- Migration strategy: For live databases, avoid editing already-applied migrations. Instead add new forward migrations (e.g., `V9__...sql`) that alter column types or apply fixes.
+- Build plugin pin: `spring-boot-maven-plugin` was explicitly pinned in `pom.xml` to ensure consistent plugin behavior with `mvn spring-boot:run`.
+- Code changes: Some JPQL queries and tests were updated to use Spring Data `Pageable` rather than `LIMIT` so they work with JPA and across dialects.
