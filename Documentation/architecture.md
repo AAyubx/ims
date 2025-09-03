@@ -1,6 +1,10 @@
-# ER Diagram (Mermaid) — SaaS Inventory Platform
-_Generated: 2025-08-31 13:00 UTC_
+````markdown
+# Architecture
+_Last updated: 2025-09-03_
 
+This document consolidates the ER diagram and microservices integration diagram into a single architecture overview.
+
+## ER Diagram (Mermaid)
 ```mermaid
 erDiagram
   TENANT ||--o{ USER_ACCOUNT : "has"
@@ -35,3 +39,29 @@ erDiagram
   PRICE_LIST ||--o{ PRICE_LIST_ITEM : "prices"
   ITEM_VARIANT ||--o{ PRICE_LIST_ITEM : "priced"
 ```
+
+## Microservices Integration (Mermaid)
+```mermaid
+flowchart LR
+  AdminUI["Admin UI - Web"]
+  MobileApp["Mobile Scanning App"]
+  APIGW["API Gateway"]
+  Auth["Auth / SSO"]
+  APIGW --- Auth
+  Catalog["catalog-svc"]
+  Inventory["inventory-svc"]
+  Purchasing["purchasing-svc"]
+  Pricing["pricing-svc"]
+  Orders["order-svc"]
+  Notify["notify-svc"]
+  Broker["Kafka or RabbitMQ"]
+  MySQL["MySQL Cluster"]
+  Redis["Redis Cache"]
+  Catalog --> MySQL
+  Inventory --> MySQL
+  Catalog --> Redis
+  Inventory --> Broker
+  Broker --> Inventory
+```
+
+````
