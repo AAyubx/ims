@@ -1,57 +1,76 @@
-````markdown
 # Security and Authentication
+
 _Last updated: 2025-09-03_
 
-This document consolidates authentication, admin user management, session handling, and security controls for the Inventory Management System.
+This consolidated document describes authentication, password policy, session management, JWT configuration, and security controls used by the Inventory Management System.
 
 ## Overview
-This covers user login, password policies, session management, admin user lifecycle, RBAC, and auditing.
 
-## Core Authentication Features
-- Email-based authentication (case-insensitive)
-- JWT token-based authentication (access + refresh tokens)
-- Login attempts tracking and account lockout
-- Password policies: min length, complexity, expiry, history
-- Password reset via secure tokens
-- Session management and concurrent session limits
+- Email/password authentication (case-insensitive email)
+- JWT-based stateless authentication with refresh tokens
+- Password hashing with BCrypt (cost 12)
+- Account lockout, rate limiting, and failed-attempt tracking
+- Session persistence for revocation and auditing
 
-## Admin User Management
-- Create/update/deactivate admin accounts
-- Role assignment and hierarchical permissions
-- Force password resets, unlock, and session termination
-- Audit trail for all admin actions
+## Authentication Flow
 
-## APIs (Representative)
-- POST /api/auth/login
-- POST /api/auth/forgot-password
-- POST /api/auth/reset-password
-- GET /api/auth/sessions
-- POST /api/admin/users
-- PUT /api/admin/users/{id}
-- DELETE /api/admin/users/{id}
+1. Client POSTs credentials to `/api/auth/login`.
+2. Service validates user status and BCrypt password hash.
+3. On success, a JWT access token and refresh token are issued and a session record is created.
+4. Protected endpoints validate JWT signature + session state (cached in Redis when appropriate).
+
+## Token Configuration (example)
+
+```
+app.jwt.secret=${JWT_SECRET}
+app.jwt.access-expiry-seconds=28800 # 8 hours
+app.jwt.refresh-expiry-seconds=604800 # 7 days
+```
 
 ## Password Policy
-- Minimum 8 characters, must contain uppercase, lowercase, digit, special
-- Cannot reuse the last 3 passwords
-- Password expiry: 60 days (configurable)
 
-## Session & Token Management
-- JWT access tokens: default 8 hours
-- Refresh tokens: 7 days
-- Token validation: signature, expiry, session presence (DB/cache)
+- Minimum length: 8
+- Require uppercase, lowercase, digits, special characters
+- History: avoid reuse of last 3 passwords
+- Expiry: 60 days by default
+- Reset tokens expire in 24 hours
 
-## Security Implementation Notes
-- Passwords hashed with BCrypt (strength 12)
-- Authentication uses DaoAuthenticationProvider + BCryptPasswordEncoder
-- Audit logs retained for admin actions and security events
+## APIs
 
-## Operational Updates (2025-09-03)
-- ENUM→VARCHAR forward Flyway migrations (V4..V8) applied; ensure migrations are run before service startup to avoid Hibernate validation errors.
-- Developer runtime: prefer JDK 17 and ensure `JAVA_HOME` is set consistently.
+```
+POST   /api/auth/login
+POST   /api/auth/logout
+POST   /api/auth/refresh
+GET    /api/auth/me
+POST   /api/auth/forgot-password
+POST   /api/auth/reset-password
+GET    /api/auth/password-policy
+```
 
-## Testing & Monitoring
-- Unit tests for password validation and auth flows
-- Integration tests with Testcontainers for DB/Redis
-- Monitor failed login attempts and account lockouts; alert on anomalies
+## Security Configuration Notes
 
-````
+- Use `BCryptPasswordEncoder` with strength 12.
+- Ensure `SecurityConfig` request matchers account for servlet context path (e.g., `/api`).
+- Permit unauthenticated access to login and forgot-password endpoints only.
+
+## Session & Revocation
+
+- Store session records in `user_session` table with sessionId, userId, ttl and lastActivity.
+- Cache permissions and session validity in Redis for fast checks; fallback to DB on cache miss.
+- Administrative session termination APIs revoke both cache and DB records.
+
+## Logging & Auditing
+
+- Log all failed login attempts and successful logins (include ip, user-agent)
+- Log password resets and admin-initiated password changes
+- Maintain immutable audit log with timestamps and actor id
+
+## Operational Tips
+
+- When updating password_hash via SQL, use binary literal to preserve the bcrypt string: `UPDATE user_account SET password_hash = _binary'$2b$...'`.
+- If Hibernate complains about enum vs varchar column types, ensure Flyway migrations converting enums to varchar are applied prior to startup.
+
+## Testing
+
+- Unit tests for token generation/validation, password policy enforcement, and login flows
+- Integration tests using Testcontainers for MySQL and Redis

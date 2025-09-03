@@ -1,32 +1,27 @@
-````markdown
 # Technical Stack
+
 _Last updated: 2025-09-03_
 
+This document summarizes the primary technologies and local development tooling for the project.
+
 ## Backend
-- Java 17+
-- Spring Boot 3.x
-- Spring Security 6.x
-- Spring Data JPA
+- Java 17+, Spring Boot 3.x, Spring Data JPA, Spring Security
+- MySQL 8, Flyway migrations, Redis for caching/session
+- JWT for auth, BCrypt for passwords
 
-## Database & Migrations
-- MySQL 8.0+
-- Flyway for schema migrations (migrations in `src/main/resources/db/migration`)
-- Redis for cache/session
+## Build & Tooling
+- Maven 3.8+, JUnit 5, Mockito, Testcontainers
+- CI: GitHub Actions (or GitLab CI)
 
-## Build & Dev Tools
-- Maven 3.8+
-- Docker & Docker Compose
-- Testcontainers for integration tests
+## Dev & Infra
+- Docker/Docker Compose for local infra
+- Kubernetes + Helm for staging/prod
+- Observability: Prometheus, Grafana, Loki, Jaeger
 
-## Security
-- JWT for stateless auth
-- BCrypt for password hashing
-
-## Frontend & UI
-- Frontend frameworks documented separately; UI tech stack includes React/Vite or Angular where applicable
+## Frontend (UI)
+- React / TypeScript or similar modern SPA stack
+- Component library + Storybook, accessibility testing
 
 ## Notes
-- Ensure `JAVA_HOME` points to JDK 17 in dev environments
-- Several Flyway forward migrations (V4..V8) were added to convert ENUM→VARCHAR to match JPA enum mappings
-
-````
+- Prefer JDK 17 for local development; `spring-boot-maven-plugin` pinned in `pom.xml` for consistent behavior.
+- Database enum→varchar migrations live in `src/main/resources/db/migration/`.
