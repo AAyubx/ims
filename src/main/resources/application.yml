@@ -6,7 +6,7 @@ spring:
     active: dev
   
   datasource:
-    url: jdbc:mysql://localhost:3306/inventory_saas?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    url: jdbc:mysql://localhost:3307/inventory_saas?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: inventory_user
     password: inventory_pass
     driver-class-name: com.mysql.cj.jdbc.Driver
