@@ -83,12 +83,13 @@ CREATE TABLE user_sessions (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Audit log table for tracking all user actions
+-- Note: use VARCHAR for action_type so it maps to JPA EnumType.STRING
 CREATE TABLE audit_log (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     tenant_id BIGINT NOT NULL,
     user_id BIGINT NULL,
     session_id VARCHAR(128) NULL,
-    action_type ENUM('CREATE', 'READ', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'ADMIN_ACTION') NOT NULL,
+    action_type VARCHAR(32) NOT NULL,
     entity_type VARCHAR(64) NOT NULL,
     entity_id VARCHAR(64) NULL,
     old_values JSON NULL,

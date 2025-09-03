@@ -78,28 +78,28 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeRequests(authz -> authz
                 // Public endpoints
-                .antMatchers("/api/auth/login").permitAll()
-                .antMatchers("/api/auth/forgot-password").permitAll()
-                .antMatchers("/api/auth/reset-password").permitAll()
-                .antMatchers("/api/auth/validate-token").permitAll()
-                
+                .antMatchers("/auth/login").permitAll()
+                .antMatchers("/auth/forgot-password").permitAll()
+                .antMatchers("/auth/reset-password").permitAll()
+                .antMatchers("/auth/validate-token").permitAll()
+
                 // Actuator endpoints
-                .antMatchers("/api/actuator/health").permitAll()
-                .antMatchers("/api/actuator/**").hasRole("ADMIN")
-                
+                .antMatchers("/actuator/health").permitAll()
+                .antMatchers("/actuator/**").hasRole("ADMIN")
+
                 // API documentation
-                .antMatchers("/api/api-docs/**").permitAll()
-                .antMatchers("/api/swagger-ui/**").permitAll()
-                .antMatchers("/api/swagger-ui.html").permitAll()
-                
+                .antMatchers("/api-docs/**").permitAll()
+                .antMatchers("/swagger-ui/**").permitAll()
+                .antMatchers("/swagger-ui.html").permitAll()
+
                 // Admin endpoints
-                .antMatchers("/api/admin/**").hasRole("ADMIN")
-                
+                .antMatchers("/admin/**").hasRole("ADMIN")
+
                 // Manager endpoints
-                .antMatchers(HttpMethod.GET, "/api/inventory/**").hasAnyRole("ADMIN", "MANAGER", "CLERK", "VIEWER")
-                .antMatchers(HttpMethod.POST, "/api/inventory/**").hasAnyRole("ADMIN", "MANAGER", "CLERK")
-                .antMatchers(HttpMethod.PUT, "/api/inventory/**").hasAnyRole("ADMIN", "MANAGER", "CLERK")
-                .antMatchers(HttpMethod.DELETE, "/api/inventory/**").hasAnyRole("ADMIN", "MANAGER")
+                .antMatchers(HttpMethod.GET, "/inventory/**").hasAnyRole("ADMIN", "MANAGER", "CLERK", "VIEWER")
+                .antMatchers(HttpMethod.POST, "/inventory/**").hasAnyRole("ADMIN", "MANAGER", "CLERK")
+                .antMatchers(HttpMethod.PUT, "/inventory/**").hasAnyRole("ADMIN", "MANAGER", "CLERK")
+                .antMatchers(HttpMethod.DELETE, "/inventory/**").hasAnyRole("ADMIN", "MANAGER")
                 
                 // All other requests require authentication
                 .anyRequest().authenticated()
