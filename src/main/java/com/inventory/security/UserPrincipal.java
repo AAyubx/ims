@@ -108,4 +108,8 @@ public class UserPrincipal implements UserDetails {
                 .map(auth -> auth.substring(5)) // Remove "ROLE_" prefix
                 .collect(Collectors.toSet());
     }
+
+    public boolean isPasswordExpired() {
+        return passwordExpiresAt != null && passwordExpiresAt.isBefore(LocalDateTime.now());
+    }
 }

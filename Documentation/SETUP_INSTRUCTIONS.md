@@ -63,7 +63,7 @@ docker-compose logs -f mysql
 
 ```bash
 # Option 1: Connect via MySQL command line
-mysql -h localhost -P 3306 -u inventory_user -p
+mysql -h -h 127.0.0.1 -P 3306 -u inventory_user -p
 # Password: inventory_pass
 
 # Option 2: Use phpMyAdmin (optional)

@@ -359,7 +359,7 @@ CREATE TABLE webhook_subscription (
   target_url    VARCHAR(1024) NOT NULL,
   secret        VARCHAR(255) NULL,
   status        ENUM('ACTIVE','INACTIVE') NOT NULL DEFAULT 'ACTIVE',
-  UNIQUE KEY uq_wh (tenant_id, event_type, target_url),
+  UNIQUE KEY uq_wh (tenant_id, event_type, target_url(191)),
   CONSTRAINT fk_wh_tenant FOREIGN KEY (tenant_id) REFERENCES tenant(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 

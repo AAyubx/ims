@@ -20,7 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import jakarta.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponse;
 
 import java.util.Arrays;
 
@@ -76,30 +76,30 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(authz -> authz
+            .authorizeRequests(authz -> authz
                 // Public endpoints
-                .requestMatchers("/api/auth/login").permitAll()
-                .requestMatchers("/api/auth/forgot-password").permitAll()
-                .requestMatchers("/api/auth/reset-password").permitAll()
-                .requestMatchers("/api/auth/validate-token").permitAll()
+                .antMatchers("/api/auth/login").permitAll()
+                .antMatchers("/api/auth/forgot-password").permitAll()
+                .antMatchers("/api/auth/reset-password").permitAll()
+                .antMatchers("/api/auth/validate-token").permitAll()
                 
                 // Actuator endpoints
-                .requestMatchers("/api/actuator/health").permitAll()
-                .requestMatchers("/api/actuator/**").hasRole("ADMIN")
+                .antMatchers("/api/actuator/health").permitAll()
+                .antMatchers("/api/actuator/**").hasRole("ADMIN")
                 
                 // API documentation
-                .requestMatchers("/api/api-docs/**").permitAll()
-                .requestMatchers("/api/swagger-ui/**").permitAll()
-                .requestMatchers("/api/swagger-ui.html").permitAll()
+                .antMatchers("/api/api-docs/**").permitAll()
+                .antMatchers("/api/swagger-ui/**").permitAll()
+                .antMatchers("/api/swagger-ui.html").permitAll()
                 
                 // Admin endpoints
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .antMatchers("/api/admin/**").hasRole("ADMIN")
                 
                 // Manager endpoints
-                .requestMatchers(HttpMethod.GET, "/api/inventory/**").hasAnyRole("ADMIN", "MANAGER", "CLERK", "VIEWER")
-                .requestMatchers(HttpMethod.POST, "/api/inventory/**").hasAnyRole("ADMIN", "MANAGER", "CLERK")
-                .requestMatchers(HttpMethod.PUT, "/api/inventory/**").hasAnyRole("ADMIN", "MANAGER", "CLERK")
-                .requestMatchers(HttpMethod.DELETE, "/api/inventory/**").hasAnyRole("ADMIN", "MANAGER")
+                .antMatchers(HttpMethod.GET, "/api/inventory/**").hasAnyRole("ADMIN", "MANAGER", "CLERK", "VIEWER")
+                .antMatchers(HttpMethod.POST, "/api/inventory/**").hasAnyRole("ADMIN", "MANAGER", "CLERK")
+                .antMatchers(HttpMethod.PUT, "/api/inventory/**").hasAnyRole("ADMIN", "MANAGER", "CLERK")
+                .antMatchers(HttpMethod.DELETE, "/api/inventory/**").hasAnyRole("ADMIN", "MANAGER")
                 
                 // All other requests require authentication
                 .anyRequest().authenticated()
