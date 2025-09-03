@@ -1,36 +1,37 @@
-````markdown
 # Setup Instructions
+
 _Last updated: 2025-09-03_
 
-Quickstart to run the project locally for development.
+Step-by-step developer setup for local development.
 
 ## Prerequisites
 - Java 17+
 - Maven 3.8+
-- Docker Desktop
+- Docker & Docker Compose
 - Git
 
-## Steps
-1. Clone repo and change directory
-2. Start DB and Redis
-   ```bash
-   docker-compose up -d mysql redis
-   ```
-3. Build and run migrations
-   ```bash
-   mvn clean compile
-   mvn flyway:migrate
-   ```
-4. Start the app
-   ```bash
-   mvn spring-boot:run
-   ```
+## Quickstart
+1. Clone the repo
+2. Start infrastructure: `docker-compose up -d mysql redis`
+3. Build app: `mvn clean compile`
+4. Run migrations: `mvn flyway:migrate`
+5. Start app: `mvn spring-boot:run`
 
-## Default accounts
-- `admin@demo.example` — use password reset or update DB to set a temporary password
+## Useful Commands
+```bash
+# run tests
+mvn test
 
-## Troubleshooting
-- Check `docker-compose ps` and `docker-compose logs mysql`
-- Use `mysql -h 127.0.0.1 -P 3307 -u inventory_user -pinventory_pass` if Docker port is 3307
+# package
+mvn package -DskipTests
 
-````
+# run flyway migrations
+mvn flyway:migrate
+```
+
+## Default Accounts
+- admin@demo.example — reset password via DB or password reset flow (see notes)
+
+## Notes
+- Ensure `JAVA_HOME` points to a JDK 17 installation.
+- If you need to set a temporary admin password in DB: use a bcrypt hash written as binary literal to preserve the leading `$`.
