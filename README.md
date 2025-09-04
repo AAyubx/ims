@@ -20,6 +20,7 @@ A modern, multi-tenant inventory management system built with Spring Boot, featu
 
 ### Technical Stack
 - **Backend**: Spring Boot 3.2, Spring Security 6, Spring Data JPA
+- **Frontend**: Next.js 14, React 18, TypeScript, Tailwind CSS
 - **Database**: MySQL 8.0 with Flyway migrations
 - **Caching**: Redis for session and configuration caching
 - **Authentication**: JWT tokens with refresh mechanism
@@ -46,16 +47,24 @@ A modern, multi-tenant inventory management system built with Spring Boot, featu
    docker-compose up -d mysql redis
    ```
 
-3. **Build and Run**
+3. **Build and Run Backend**
    ```bash
    mvn clean compile
    mvn flyway:migrate
    mvn spring-boot:run
    ```
 
-4. **Verify Setup**
-   - API: http://localhost:8080/api/actuator/health
-   - Docs: http://localhost:8080/api/swagger-ui.html
+4. **Start Frontend (separate terminal)**
+   ```bash
+   cd inventory-ui
+   npm install
+   npm run dev
+   ```
+
+5. **Verify Setup**
+   - Backend API: http://localhost:8080/api/actuator/health
+   - Frontend App: http://localhost:3000
+   - API Docs: http://localhost:8080/api/swagger-ui.html
    - phpMyAdmin: http://localhost:8080
 
 For detailed setup instructions, see [SETUP_INSTRUCTIONS.md](SETUP_INSTRUCTIONS.md).
@@ -102,17 +111,23 @@ Use the password reset functionality to set initial passwords.
 - **Login Attempts**: 5 max before lockout
 - **Session Timeout**: 8 hours
 - **Password History**: Last 3 passwords remembered
+- **API Base URL**: http://localhost:8080/api (frontend config)
 
 ### Environment Variables
 ```bash
+# Backend
 JWT_SECRET=your-256-bit-secret
 DB_PASSWORD=secure-password
 MAIL_USERNAME=smtp-user
 MAIL_PASSWORD=smtp-pass
+
+# Frontend (inventory-ui/.env.local)
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8080/api
 ```
 
 ## 🧪 Testing
 
+**Backend Tests:**
 ```bash
 # Run all tests
 mvn test
@@ -122,6 +137,18 @@ mvn test -Dtest=**/*IntegrationTest
 
 # Generate coverage report
 mvn clean test jacoco:report
+```
+
+**Frontend Tests:**
+```bash
+# Navigate to frontend directory
+cd inventory-ui
+
+# Run tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
 ```
 
 ## 📊 API Endpoints
