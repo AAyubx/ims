@@ -233,9 +233,10 @@ Dashboard (Overview)
 - **Web Vitals** monitoring integration
 
 ### Authentication & Security
-- **NextAuth.js** for authentication with OIDC/OAuth2 support
-- **JWT** token handling with automatic refresh
+- **Custom JWT Authentication** integration with Java Spring Boot backend
+- **Axios Interceptors** for JWT token handling with automatic refresh
 - **HTTPS** enforcement and secure headers configuration
+- **Token Storage** in secure localStorage with automatic cleanup
 
 ## Prerequisites & Setup
 
@@ -335,6 +336,7 @@ npm install zustand react-hook-form @hookform/resolvers zod
 npm install @radix-ui/react-toast @radix-ui/react-dialog @radix-ui/react-dropdown-menu
 npm install lucide-react react-hot-toast
 npm install class-variance-authority clsx tailwind-merge
+npm install axios js-cookie @types/js-cookie
 
 # Install dev dependencies
 npm install -D @types/node
@@ -451,8 +453,8 @@ export const useInventoryQuery = (params: InventoryParams) => {
 # .env.local
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8080/api/v1
 NEXT_PUBLIC_APP_ENV=development
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your-development-secret
+NEXT_PUBLIC_JWT_REFRESH_MARGIN=300000
+NEXT_PUBLIC_SESSION_TIMEOUT=28800000
 ```
 
 ## Quality Assurance
@@ -484,10 +486,12 @@ NEXTAUTH_SECRET=your-development-secret
 - **File Upload**: Handling bulk imports (CSV, Excel) with progress tracking
 
 ### Authentication Flow
-1. **OIDC/OAuth2**: Integration with Java Spring Security backend
-2. **JWT Tokens**: Stored securely in httpOnly cookies
-3. **Automatic Refresh**: Token renewal without user intervention
-4. **Role-Based Rendering**: UI components based on user permissions
+1. **Custom JWT Authentication**: Direct integration with Java Spring Boot `/auth` endpoints
+2. **JWT Tokens**: Access and refresh tokens stored in secure localStorage
+3. **Automatic Refresh**: Token renewal via `/auth/refresh` endpoint with axios interceptors
+4. **Role-Based Rendering**: UI components based on user permissions and roles
+5. **Session Management**: Active session tracking with logout from `/auth/sessions`
+6. **Account Security**: Password change, account lockout, and failed attempt handling
 
 ### Error Handling Strategy
 - **Global Error Boundary**: Catches unexpected React errors

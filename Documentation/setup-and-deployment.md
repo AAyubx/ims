@@ -69,6 +69,7 @@ mvn checkstyle:check
 ```
 
 #### Catalog Service
+
 ## Step-by-Step Setup
 
 This section expands the quick commands into a reproducible, step-by-step setup for local development.
