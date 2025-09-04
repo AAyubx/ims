@@ -1,15 +1,72 @@
+# Setup and Deployment Guide — Quick commands (with descriptions)
+
+The following commands are used frequently during local setup and debugging. Short descriptions are provided so you know when to run each one.
+
+1) Clone repository and change into project directory
+
+```bash
+# Clone the repository (replace <your-repo-url>)
 git clone <your-repo-url> inventory-management-system
+cd "inventory-management-system" || cd "/Users/ayubahmed/Documents/Programming/Java/Inventory Management System"
+```
+
+2) Start local infrastructure (MySQL + Redis)
+
+```bash
+# Start MySQL and Redis containers in detached mode
 docker-compose up -d mysql redis
+```
+
+3) Follow MySQL startup logs until ready
+
+```bash
 docker-compose logs -f mysql
+```
+
+4) Run unit tests
+
+```bash
 mvn test
+```
+
+5) Inspect container status or logs
+
+```bash
+# Show mysql container status
 docker-compose ps mysql
+
+# Show mysql logs (non-follow)
 docker-compose logs mysql
+
+# Restart mysql container if necessary
 docker-compose restart mysql
+```
+
+6) Flyway migrations (development only: clean is destructive)
+
+```bash
+# WARNING: mvn flyway:clean is destructive. Use only in development.
 mvn flyway:clean flyway:migrate
+```
+
+7) Tail application logs
+
+```bash
 tail -f logs/inventory-management.log
+```
+
+8) Redis quick checks
+
+```bash
 docker-compose ps redis
 docker exec -it inventory-redis redis-cli ping
+```
+
+9) Code style checks
+
+```bash
 mvn checkstyle:check
+```
 
 #### Catalog Service
 
@@ -318,6 +375,7 @@ kubectl top pods -n inventory-prd
 ## Next Steps
 
 ### Development
+
 ### Local Mail & Actuator notes
 
 The development profile uses MailHog for local SMTP testing. MailHog listens on SMTP port 1025 and exposes a web UI on port 8025. Quick start:
@@ -328,6 +386,7 @@ docker run --rm -p 8025:8025 -p 1025:1025 mailhog/mailhog
 ```
 
 Notes:
+
 - The `dev` profile intentionally disables SMTP auth and STARTTLS so MailHog can accept messages without credentials.
 - If MailHog isn't running, the mail health check may report DOWN and cause the actuator health endpoint to show a degraded state. Either run MailHog or disable the mail health indicator in the `dev` profile:
 
