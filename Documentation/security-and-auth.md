@@ -70,6 +70,12 @@ GET    /api/auth/password-policy
 - When updating password_hash via SQL, use binary literal to preserve the bcrypt string: `UPDATE user_account SET password_hash = _binary'$2b$...'`.
 - If Hibernate complains about enum vs varchar column types, ensure Flyway migrations converting enums to varchar are applied prior to startup.
 
+### Dev mail and actuator notes
+
+- For local development we use a test SMTP (MailHog) on `localhost:1025` and the MailHog UI on `http://localhost:8025` so password-reset emails and other notifications can be inspected.
+- The `dev` profile disables SMTP auth/starttls by default and the mail health indicator can be disabled so the actuator health endpoint does not report DOWN simply because no SMTP credentials are set on a developer machine.
+- After editing `application.yml` the Spring Boot application must be restarted for changes (mail settings or management.health.mail.enabled) to take effect.
+
 ## Testing
 
 - Unit tests for token generation/validation, password policy enforcement, and login flows

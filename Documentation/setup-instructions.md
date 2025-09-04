@@ -35,3 +35,20 @@ mvn flyway:migrate
 ## Notes
 - Ensure `JAVA_HOME` points to a JDK 17 installation.
 - If you need to set a temporary admin password in DB: use a bcrypt hash written as binary literal to preserve the leading `$`.
+
+### Local Mail & Actuator notes
+
+- The development profile uses MailHog on `localhost:1025` for SMTP and `http://localhost:8025` for the MailHog UI. If MailHog is not running, the mail health check will report DOWN.
+- To run MailHog quickly for local testing:
+
+```bash
+docker run --rm -p 8025:8025 -p 1025:1025 mailhog/mailhog
+```
+
+- Alternatively run a lightweight Python SMTP debug server (prints emails to stdout):
+
+```bash
+python3 -m smtpd -n -c DebuggingServer localhost:1025
+```
+
+- During development the app disables SMTP auth/starttls and the mail health indicator can be turned off in the `dev` profile to avoid failing actuator checks when no credentials are present. After changing `application.yml`, restart the app for changes to take effect.
