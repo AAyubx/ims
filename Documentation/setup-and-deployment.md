@@ -2,7 +2,7 @@
 
 The following commands are used frequently during local setup and debugging. Short descriptions are provided so you know when to run each one.
 
-1) Clone repository and change into project directory
+1. Clone repository and change into project directory
 
 ```bash
 # Clone the repository (replace <your-repo-url>)
@@ -10,26 +10,26 @@ git clone <your-repo-url> inventory-management-system
 cd "inventory-management-system" || cd "/Users/ayubahmed/Documents/Programming/Java/Inventory Management System"
 ```
 
-2) Start local infrastructure (MySQL + Redis)
+2. Start local infrastructure (MySQL + Redis)
 
 ```bash
 # Start MySQL and Redis containers in detached mode
 docker-compose up -d mysql redis
 ```
 
-3) Follow MySQL startup logs until ready
+3. Follow MySQL startup logs until ready
 
 ```bash
 docker-compose logs -f mysql
 ```
 
-4) Run unit tests
+4. Run unit tests
 
 ```bash
 mvn test
 ```
 
-5) Inspect container status or logs
+5. Inspect container status or logs
 
 ```bash
 # Show mysql container status
@@ -42,33 +42,310 @@ docker-compose logs mysql
 docker-compose restart mysql
 ```
 
-6) Flyway migrations (development only: clean is destructive)
+6. Flyway migrations (development only: clean is destructive)
 
 ```bash
 # WARNING: mvn flyway:clean is destructive. Use only in development.
 mvn flyway:clean flyway:migrate
 ```
 
-7) Tail application logs
+7. Tail application logs
 
 ```bash
 tail -f logs/inventory-management.log
 ```
 
-8) Redis quick checks
+8. Redis quick checks
 
 ```bash
 docker-compose ps redis
 docker exec -it inventory-redis redis-cli ping
 ```
 
-9) Code style checks
+9. Code style checks
 
 ```bash
 mvn checkstyle:check
 ```
 
 #### Catalog Service
+## Step-by-Step Setup
+
+This section expands the quick commands into a reproducible, step-by-step setup for local development.
+
+### Overview
+
+Follow these steps to set up and run the Inventory Management System locally on your development machine.
+
+### Prerequisites
+
+Ensure the following software is installed on your machine:
+
+- Java 17+ (Oracle JDK or OpenJDK)
+
+```bash
+# Check Java version
+java -version
+```
+
+- Maven 3.8+
+
+```bash
+# Check Maven version
+mvn -version
+```
+
+- Docker Desktop
+
+```bash
+# Check Docker and docker-compose versions
+docker --version
+docker-compose --version
+```
+
+- Git
+
+```bash
+# Check Git version
+git --version
+```
+
+### Step 1: Clone the repository
+
+```bash
+# Clone the repository
+git clone <your-repo-url> inventory-management-system
+cd inventory-management-system
+
+# Or if you are already in the project path
+cd "/Users/ayubahmed/Documents/Programming/Java/Inventory Management System"
+```
+
+### Step 2: Start Database Services
+
+```bash
+# Start MySQL and Redis using Docker Compose
+docker-compose up -d mysql redis
+
+# Wait for services to be ready (check logs)
+docker-compose logs -f mysql
+
+# You should see "MySQL init process done. Ready for start up." in the logs
+```
+
+### Step 3: Verify Database Connection
+
+```bash
+# Connect via MySQL command line (note: dev uses port 3307 to avoid conflicts)
+mysql -h 127.0.0.1 -P 3307 -u inventory_user -p
+# Password: inventory_pass
+```
+
+Optionally use phpMyAdmin (if configured) at http://localhost:8080 to inspect the database.
+
+### Step 4: Build the Application
+
+```bash
+# Clean and compile the project
+mvn clean compile
+
+# Run tests (optional)
+mvn test
+
+# Package the application
+mvn package -DskipTests
+```
+
+### Step 5: Run Database Migrations
+
+```bash
+# Run Flyway migrations to set up the database schema
+mvn flyway:migrate
+
+# Verify migrations were applied successfully
+mvn flyway:info
+```
+
+### Step 6: Start the Application
+
+```bash
+# Start the Spring Boot application
+mvn spring-boot:run
+
+# Or run the JAR file directly
+java -jar target/inventory-management-system-1.0.0-SNAPSHOT.jar
+```
+
+### Step 7: Verify Application is Running
+
+1. Health check
+
+```bash
+curl http://localhost:8080/api/actuator/health
+```
+
+2. API documentation
+
+- Swagger UI: http://localhost:8080/api/swagger-ui.html
+- API Docs: http://localhost:8080/api/api-docs
+
+3. Database and tooling
+
+- phpMyAdmin: http://localhost:8080 (if configured)
+- Redis Commander: http://localhost:8081 (if configured)
+
+## Default User Accounts
+
+After running migrations you may find these sample users in the seeded data:
+
+| Email                | Password                 | Role    | Employee Code |
+| -------------------- | ------------------------ | ------- | ------------- |
+| admin@demo.example   | (Set via password reset) | ADMIN   | EMP001        |
+| manager@demo.example | (Set via password reset) | MANAGER | EMP002        |
+
+⚠️ Important: Default users do not have passwords set in the dev seed. Use the password reset function or set a temporary DB password (see Testing the API below).
+
+## Environment Configuration
+
+The application uses the `dev` profile for local development. Key settings live in `application.yml` and can be overridden with environment variables.
+
+```yaml
+# Database connection (dev)
+spring.datasource.url: jdbc:mysql://127.0.0.1:3307/inventory_saas
+spring.datasource.username: inventory_user
+spring.datasource.password: inventory_pass
+
+# Redis connection
+spring.data.redis.host: localhost
+spring.data.redis.port: 6379
+```
+
+### Environment Variables (Optional)
+
+You can override values with environment variables, for example:
+
+```bash
+# JWT secret (production)
+export JWT_SECRET=your-256-bit-secret-key
+
+# Database credentials
+export DB_PASSWORD=your-secure-password
+
+# Mail configuration (for password reset emails)
+export MAIL_USERNAME=your-smtp-username
+export MAIL_PASSWORD=your-smtp-password
+```
+
+## Testing the API
+
+### 1. Set an API token (login)
+
+If you need to set a temporary password directly in the DB (development only), write a bcrypt hash as a binary literal so the leading `$` characters are preserved. Example:
+
+```sql
+USE inventory_saas;
+UPDATE user_account
+SET password_hash = _binary'$2a$12$LQv3c1yqBw3hjKQV3d5gOuP.1Dg/QqvGwm1QhOj8Kj2.mZuOj8Kj2'
+WHERE email = 'admin@demo.example';
+-- This example sets the password to: TempPassword123!
+```
+
+### 2. Test authentication endpoints
+
+```bash
+# Login request
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@demo.example",
+    "password": "TempPassword123!"
+  }'
+
+# Expected response includes a JWT token
+```
+
+### 3. Test protected endpoints
+
+```bash
+# Use the JWT token returned by the login request
+curl -X GET http://localhost:8080/api/admin/users \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN_HERE"
+```
+
+## Troubleshooting
+
+### Common Issues
+
+#### MySQL connection failed
+
+```bash
+# Check if MySQL container is running
+docker-compose ps mysql
+
+# Check MySQL logs
+docker-compose logs mysql
+
+# Restart MySQL if necessary
+docker-compose restart mysql
+```
+
+#### Port already in use
+
+```bash
+# Find process using port 3307
+lsof -i :3307
+```
+
+#### Flyway migration errors
+
+```bash
+# Check migration status
+mvn flyway:info
+
+# Repair failed migrations
+mvn flyway:repair
+
+# Clean and re-run (⚠️ DESTRUCTIVE - dev only)
+mvn flyway:clean flyway:migrate
+```
+
+#### Application won't start
+
+```bash
+# Tail application logs
+tail -f logs/inventory-management.log
+```
+
+#### Redis connection issues
+
+```bash
+# Check Redis status
+docker-compose ps redis
+
+# Test Redis connection
+docker exec -it inventory-redis redis-cli ping
+```
+
+#### Developer notes
+
+- Do not modify applied Flyway migrations; create forward migrations for schema changes.
+- Use JDK 17 for local development and set `JAVA_HOME` accordingly:
+
+```bash
+export JAVA_HOME=$(/usr/libexec/java_home -v 17)
+```
+
+#### Recent updates
+
+- Flyway migrations V4..V8 converted several MySQL ENUM columns to VARCHAR to match JPA `@Enumerated(EnumType.STRING)`. Those migrations live in `src/main/resources/db/migration/`.
+
+#### References
+
+This step-by-step content is derived from the original `SETUP_INSTRUCTIONS.md` (archived).
+
+####
+
+#### Inventory Service
 
 - 2-3 replicas minimum, HPA based on CPU+RPS
 - Optional OpenSearch deployed via operator
