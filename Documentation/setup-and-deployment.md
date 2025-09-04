@@ -1,0 +1,740 @@
+# Setup and Deployment Guide — Quick commands (with descriptions)
+
+The following commands are used frequently during local setup and debugging. Short descriptions are provided so you know when to run each one.
+
+1. Clone repository and change into project directory
+
+```bash
+# Clone the repository (replace <your-repo-url>)
+git clone <your-repo-url> inventory-management-system
+cd "inventory-management-system" || cd "/Users/ayubahmed/Documents/Programming/Java/Inventory Management System"
+```
+
+2. Start local infrastructure (MySQL + Redis)
+
+```bash
+# Start MySQL and Redis containers in detached mode
+docker-compose up -d mysql redis
+```
+
+3. Follow MySQL startup logs until ready
+
+```bash
+docker-compose logs -f mysql
+```
+
+4. Run unit tests
+
+```bash
+mvn test
+```
+
+5. Inspect container status or logs
+
+```bash
+# Show mysql container status
+docker-compose ps mysql
+
+# Show mysql logs (non-follow)
+docker-compose logs mysql
+
+# Restart mysql container if necessary
+docker-compose restart mysql
+```
+
+6. Flyway migrations (development only: clean is destructive)
+
+```bash
+# WARNING: mvn flyway:clean is destructive. Use only in development.
+mvn flyway:clean flyway:migrate
+```
+
+7. Tail application logs
+
+```bash
+tail -f logs/inventory-management.log
+```
+
+8. Redis quick checks
+
+```bash
+docker-compose ps redis
+docker exec -it inventory-redis redis-cli ping
+```
+
+9. Code style checks
+
+```bash
+mvn checkstyle:check
+```
+
+#### Catalog Service
+## Step-by-Step Setup
+
+This section expands the quick commands into a reproducible, step-by-step setup for local development.
+
+### Overview
+
+Follow these steps to set up and run the Inventory Management System locally on your development machine.
+
+### Prerequisites
+
+Ensure the following software is installed on your machine:
+
+- Java 17+ (Oracle JDK or OpenJDK)
+
+```bash
+# Check Java version
+java -version
+```
+
+- Maven 3.8+
+
+```bash
+# Check Maven version
+mvn -version
+```
+
+- Docker Desktop
+
+```bash
+# Check Docker and docker-compose versions
+docker --version
+docker-compose --version
+```
+
+- Git
+
+```bash
+# Check Git version
+git --version
+```
+
+### Step 1: Clone the repository
+
+```bash
+# Clone the repository
+git clone <your-repo-url> inventory-management-system
+cd inventory-management-system
+
+# Or if you are already in the project path
+cd "/Users/ayubahmed/Documents/Programming/Java/Inventory Management System"
+```
+
+### Step 2: Start Database Services
+
+```bash
+# Start MySQL and Redis using Docker Compose
+docker-compose up -d mysql redis
+
+# Wait for services to be ready (check logs)
+docker-compose logs -f mysql
+
+# You should see "MySQL init process done. Ready for start up." in the logs
+```
+
+### Step 3: Verify Database Connection
+
+```bash
+# Connect via MySQL command line (note: dev uses port 3307 to avoid conflicts)
+mysql -h 127.0.0.1 -P 3307 -u inventory_user -p
+# Password: inventory_pass
+```
+
+Optionally use phpMyAdmin (if configured) at http://localhost:8080 to inspect the database.
+
+### Step 4: Build the Application
+
+```bash
+# Clean and compile the project
+mvn clean compile
+
+# Run tests (optional)
+mvn test
+
+# Package the application
+mvn package -DskipTests
+```
+
+### Step 5: Run Database Migrations
+
+```bash
+# Run Flyway migrations to set up the database schema
+mvn flyway:migrate
+
+# Verify migrations were applied successfully
+mvn flyway:info
+```
+
+### Step 6: Start the Application
+
+```bash
+# Start the Spring Boot application
+mvn spring-boot:run
+
+# Or run the JAR file directly
+java -jar target/inventory-management-system-1.0.0-SNAPSHOT.jar
+```
+
+### Step 7: Verify Application is Running
+
+1. Health check
+
+```bash
+curl http://localhost:8080/api/actuator/health
+```
+
+2. API documentation
+
+- Swagger UI: http://localhost:8080/api/swagger-ui.html
+- API Docs: http://localhost:8080/api/api-docs
+
+3. Database and tooling
+
+- phpMyAdmin: http://localhost:8080 (if configured)
+- Redis Commander: http://localhost:8081 (if configured)
+
+## Default User Accounts
+
+After running migrations you may find these sample users in the seeded data:
+
+| Email                | Password                 | Role    | Employee Code |
+| -------------------- | ------------------------ | ------- | ------------- |
+| admin@demo.example   | (Set via password reset) | ADMIN   | EMP001        |
+| manager@demo.example | (Set via password reset) | MANAGER | EMP002        |
+
+⚠️ Important: Default users do not have passwords set in the dev seed. Use the password reset function or set a temporary DB password (see Testing the API below).
+
+## Environment Configuration
+
+The application uses the `dev` profile for local development. Key settings live in `application.yml` and can be overridden with environment variables.
+
+```yaml
+# Database connection (dev)
+spring.datasource.url: jdbc:mysql://127.0.0.1:3307/inventory_saas
+spring.datasource.username: inventory_user
+spring.datasource.password: inventory_pass
+
+# Redis connection
+spring.data.redis.host: localhost
+spring.data.redis.port: 6379
+```
+
+### Environment Variables (Optional)
+
+You can override values with environment variables, for example:
+
+```bash
+# JWT secret (production)
+export JWT_SECRET=your-256-bit-secret-key
+
+# Database credentials
+export DB_PASSWORD=your-secure-password
+
+# Mail configuration (for password reset emails)
+export MAIL_USERNAME=your-smtp-username
+export MAIL_PASSWORD=your-smtp-password
+```
+
+## Testing the API
+
+### 1. Set an API token (login)
+
+If you need to set a temporary password directly in the DB (development only), write a bcrypt hash as a binary literal so the leading `$` characters are preserved. Example:
+
+```sql
+USE inventory_saas;
+UPDATE user_account
+SET password_hash = _binary'$2a$12$LQv3c1yqBw3hjKQV3d5gOuP.1Dg/QqvGwm1QhOj8Kj2.mZuOj8Kj2'
+WHERE email = 'admin@demo.example';
+-- This example sets the password to: TempPassword123!
+```
+
+### 2. Test authentication endpoints
+
+```bash
+# Login request
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@demo.example",
+    "password": "TempPassword123!"
+  }'
+
+# Expected response includes a JWT token
+```
+
+### 3. Test protected endpoints
+
+```bash
+# Use the JWT token returned by the login request
+curl -X GET http://localhost:8080/api/admin/users \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN_HERE"
+```
+
+## Troubleshooting
+
+### Common Issues
+
+#### MySQL connection failed
+
+```bash
+# Check if MySQL container is running
+docker-compose ps mysql
+
+# Check MySQL logs
+docker-compose logs mysql
+
+# Restart MySQL if necessary
+docker-compose restart mysql
+```
+
+#### Port already in use
+
+```bash
+# Find process using port 3307
+lsof -i :3307
+```
+
+#### Flyway migration errors
+
+```bash
+# Check migration status
+mvn flyway:info
+
+# Repair failed migrations
+mvn flyway:repair
+
+# Clean and re-run (⚠️ DESTRUCTIVE - dev only)
+mvn flyway:clean flyway:migrate
+```
+
+#### Application won't start
+
+```bash
+# Tail application logs
+tail -f logs/inventory-management.log
+```
+
+#### Redis connection issues
+
+```bash
+# Check Redis status
+docker-compose ps redis
+
+# Test Redis connection
+docker exec -it inventory-redis redis-cli ping
+```
+
+#### Developer notes
+
+- Do not modify applied Flyway migrations; create forward migrations for schema changes.
+- Use JDK 17 for local development and set `JAVA_HOME` accordingly:
+
+```bash
+export JAVA_HOME=$(/usr/libexec/java_home -v 17)
+```
+
+#### Recent updates
+
+- Flyway migrations V4..V8 converted several MySQL ENUM columns to VARCHAR to match JPA `@Enumerated(EnumType.STRING)`. Those migrations live in `src/main/resources/db/migration/`.
+
+#### References
+
+This step-by-step content is derived from the original `SETUP_INSTRUCTIONS.md` (archived).
+
+####
+
+#### Inventory Service
+
+- 2-3 replicas minimum, HPA based on CPU+RPS
+- Optional OpenSearch deployed via operator
+- Ingress routes `/catalog/**` to catalog-svc
+
+#### Inventory Service
+
+- Requires low latency to MySQL; use node affinity to DB nodes
+- Configure priority class to protect from eviction
+- Enable PodDisruptionBudget for at least 1 running replica
+- Kafka topic partitions sized for ledger throughput
+
+#### Purchasing Service
+
+- Scheduled jobs (K8s CronJobs) for forecasting/replenishment
+- Use WorkQueue and DLQ topics for failed computations
+
+#### Pricing Service
+
+- ConfigMaps for pricing rules; reload via Spring Cloud Kubernetes
+- Redis cache layer as managed add-on with eviction policies
+
+### 5. Security & Compliance
+
+- Enforce mTLS via service mesh and NetworkPolicies
+- OPA/Gatekeeper constraints for security policies
+- Secrets via External Secrets referencing cloud KMS
+- Regular key rotation on schedule
+
+### 6. Observability & Monitoring
+
+- Prometheus Operator for metrics scraping
+- ServiceMonitors per service
+- Dashboards for latency, error rates, inventory lag
+- SLOs defined in Grafana with alerting
+
+## Image & Release Standards
+
+### Container Standards
+
+- Semantic version tags (`1.3.0`) with immutable digests
+- SBOM (Software Bill of Materials) included
+- Base images scanned for vulnerabilities
+- Distroless images where possible
+
+### Release Management
+
+- Helm values per environment: resources, HPA, autoscaling thresholds
+- Secret references managed externally
+- Immutable artifact promotion through environments
+
+## Deployment Workflow
+
+### End-to-End Pipeline
+
+1. **Build Stage**
+
+   - CI compiles, tests, generates SBOM
+   - Signs images with cosign
+   - Vulnerability scanning gates
+
+2. **Publish Stage**
+
+   - Push images to registry
+   - Helm chart version bump
+   - Supply chain security attestations
+
+3. **Staging Deployment**
+
+   ```bash
+   helm upgrade inventory-app ./helm/inventory \
+     -f values-staging.yaml \
+     --namespace inventory-stg
+   ```
+
+   - Run smoke tests and synthetic E2E tests
+   - Canary deployment if service mesh present
+
+4. **Production Deployment**
+
+   ```bash
+   helm upgrade inventory-app ./helm/inventory \
+     -f values-production.yaml \
+     --namespace inventory-prd
+   ```
+
+   - Progressive traffic shift (5%/25%/100%)
+   - Monitor SLOs and error budgets
+   - Auto-rollback on threshold breach
+
+5. **Post-Deploy**
+   - Capture release notes
+   - Tag Git repository
+   - Archive Helm values
+   - Trigger data quality jobs
+
+### Environment-Specific Configurations
+
+#### Staging Environment
+
+```yaml
+# values-staging.yaml
+replicaCount: 2
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "250m"
+  limits:
+    memory: "1Gi"
+    cpu: "500m"
+
+hpa:
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+```
+
+#### Production Environment
+
+```yaml
+# values-production.yaml
+replicaCount: 3
+resources:
+  requests:
+    memory: "1Gi"
+    cpu: "500m"
+  limits:
+    memory: "2Gi"
+    cpu: "1000m"
+
+hpa:
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 60
+
+podDisruptionBudget:
+  minAvailable: 2
+```
+
+## Performance & Scalability
+
+### Autoscaling Strategy
+
+- **HPA (Horizontal Pod Autoscaler)**: CPU and RPS-based scaling
+- **VPA (Vertical Pod Autoscaler)**: Resource recommendation in staging
+- Cluster autoscaling for node capacity management
+
+### Traffic Management
+
+- Canary deployments with traffic splitting
+- Circuit breakers and retry policies in service mesh
+- Rate limiting at ingress and service levels
+
+### Data Optimization
+
+- Horizontal sharding for high-volume services
+- Kafka topic partitioning for parallel processing
+- Database connection pooling and read replicas
+
+## Security Posture
+
+### Container Security
+
+- Pod Security Admission: `baseline`/`restricted` profiles
+- NetworkPolicies with default-deny rules
+- Non-root container execution
+- Read-only root filesystems where possible
+
+### Secrets Management
+
+- External Secrets Operator integration
+- Key rotation automation
+- Audit logging for secret access
+- Secret scanning in CI/CD pipelines
+
+### Network Security
+
+- mTLS between services via service mesh
+- Ingress-level TLS termination with cert-manager
+- WAF/Bot protection at edge
+- Egress filtering and monitoring
+
+## Disaster Recovery & Business Continuity
+
+### Backup Strategy
+
+- MySQL: Daily full backups + continuous binlog shipping
+- Application state: PVC snapshots
+- Configuration: GitOps repository backups
+- Cross-region backup replication
+
+### Recovery Procedures
+
+- **RTO (Recovery Time Objective)**: < 4 hours
+- **RPO (Recovery Point Objective)**: < 15 minutes
+- Automated failover for database clusters
+- Infrastructure-as-code for rapid environment recreation
+
+### Testing
+
+- Monthly DR drills with full environment recreation
+- Backup restoration validation
+- Chaos engineering in staging environments
+
+## Monitoring & Alerting
+
+### Key Metrics
+
+- Application metrics: request rates, latency, errors
+- Business metrics: inventory accuracy, order fulfillment rates
+- Infrastructure metrics: CPU, memory, disk, network
+- Database metrics: connection pools, query performance
+
+### Alert Thresholds
+
+```yaml
+# Critical alerts (immediate response)
+- InventoryServiceDown > 30s
+- DatabaseConnectionsExhausted > 5min
+- ErrorRate > 5% for 2min
+
+# Warning alerts (within business hours)
+- HighLatency > 500ms for 5min
+- LowInventoryAccuracy < 95% for 15min
+```
+
+### Dashboards
+
+- Executive dashboard: business KPIs and system health
+- Operations dashboard: service health and performance
+- Developer dashboard: application metrics and logs
+
+## Compliance & Governance
+
+### Go-Live Readiness Checklist
+
+- [ ] Capacity testing completed with p95 targets met
+- [ ] Security review and penetration test findings resolved
+- [ ] SBOM published and vulnerability scanning clear
+- [ ] Disaster recovery procedures tested and validated
+- [ ] Incident runbooks published and team trained
+- [ ] On-call rotations configured in PagerDuty/Alertmanager
+- [ ] Compliance requirements (SOC 2, GDPR) validated
+- [ ] Performance benchmarks and SLOs established
+
+### Audit & Compliance
+
+- Comprehensive audit logging for all user actions
+- Immutable audit trails with retention policies
+- GDPR compliance for data export and deletion
+- Regular security assessments and compliance reporting
+
+## Useful Commands & References
+
+### Development Commands
+
+```bash
+# View running containers
+docker-compose ps
+
+# Stop all services
+docker-compose down
+
+# View application logs
+tail -f logs/inventory-management.log
+
+# Database console access
+mysql -h 127.0.0.1 -P 3307 -u inventory_user -p
+
+# Redis console access
+docker exec -it inventory-redis redis-cli
+```
+
+### Production Commands
+
+```bash
+# Check cluster status
+kubectl get nodes
+kubectl get pods -n inventory-prd
+
+# View service logs
+kubectl logs -f deployment/inventory-service -n inventory-prd
+
+# Check ingress
+kubectl get ingress -n inventory-prd
+
+# Monitor resource usage
+kubectl top pods -n inventory-prd
+```
+
+### Monitoring URLs
+
+- **Local Development**:
+
+  - Health check: http://localhost:8080/api/actuator/health
+  - Metrics: http://localhost:8080/api/actuator/metrics
+  - API docs: http://localhost:8080/api/swagger-ui.html
+
+- **Production**:
+  - Grafana: https://monitoring.inventory.example.com
+  - Prometheus: https://prometheus.inventory.example.com
+  - Kibana: https://logs.inventory.example.com
+
+## Next Steps
+
+### Development
+
+### Local Mail & Actuator notes
+
+The development profile uses MailHog for local SMTP testing. MailHog listens on SMTP port 1025 and exposes a web UI on port 8025. Quick start:
+
+```bash
+# Run MailHog for local development
+docker run --rm -p 8025:8025 -p 1025:1025 mailhog/mailhog
+```
+
+Notes:
+
+- The `dev` profile intentionally disables SMTP auth and STARTTLS so MailHog can accept messages without credentials.
+- If MailHog isn't running, the mail health check may report DOWN and cause the actuator health endpoint to show a degraded state. Either run MailHog or disable the mail health indicator in the `dev` profile:
+
+```yaml
+management:
+  health:
+    mail:
+      enabled: false
+```
+
+- After changing `application.yml` or profile settings you must restart the application for changes to take effect.
+
+#### Setting a temporary admin password via DB
+
+If you need to set a temporary password directly in the database use a bcrypt hash and write it as a binary literal so the leading `$` characters are preserved. Example (replace the hash with one you generated):
+
+```sql
+USE inventory_saas;
+UPDATE user_account
+SET password_hash = _binary'$2a$12$LQv3c1yqBw3hjKQV3d5gOuP.1Dg/QqvGwm1QhOj8Kj2.mZuOj8Kj2'
+WHERE email = 'admin@demo.example';
+-- The example hash above corresponds to a dev temporary password (change in production immediately).
+```
+
+1. **Set Initial Passwords**: Use password reset functionality for default users
+2. **Create Additional Users**: Use admin interface for user management
+3. **Configure Email**: Set up SMTP settings for notifications
+4. **Customize Configuration**: Adjust password policies and security settings
+5. **Implement Frontend**: Connect frontend applications to the API
+
+### Production
+
+1. **Infrastructure Setup**: Provision Kubernetes cluster and supporting services
+2. **Security Hardening**: Implement security policies and compliance controls
+3. **Monitoring Setup**: Deploy observability stack and configure alerts
+4. **Load Testing**: Validate performance under expected load
+5. **Go-Live Planning**: Execute deployment and cutover procedures
+
+---
+
+## Verification Checklist
+
+After completing setup, verify these items:
+
+**Local Development**:
+
+- [ ] Docker containers are running (MySQL, Redis)
+- [ ] Database connection is working on port 3307
+- [ ] Flyway migrations completed successfully
+- [ ] Spring Boot application starts without errors
+- [ ] Health check endpoint returns UP status
+- [ ] Swagger UI is accessible
+- [ ] Can create and authenticate users
+- [ ] API endpoints respond correctly
+
+**Production Deployment**:
+
+- [ ] All services deployed and healthy
+- [ ] Ingress and TLS certificates configured
+- [ ] Monitoring and alerting operational
+- [ ] Load testing completed successfully
+- [ ] Disaster recovery procedures validated
+- [ ] Security scans passed
+- [ ] Performance targets met
+- [ ] Compliance requirements satisfied
+
+**Congratulations!** Your Inventory Management System is ready for operation.
+
+## References
+
+This document consolidates information from:
+
+- SETUP_INSTRUCTIONS.md
+- deployment_plan.md
