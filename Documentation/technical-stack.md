@@ -1,4 +1,5 @@
 # Technical Stack
+
 <!-- Consolidated technical stack and architecture. This file is the canonical tech-stack doc. -->
 
 # Technical Stack & Architecture
@@ -42,3 +43,7 @@ This document is the canonical reference for the project's technology stack, arc
 - Database migrations (including enum→varchar conversions) live in `src/main/resources/db/migration/`.
 
 For fuller architecture details and future microservices plans, see `Documentation/archived/tech-stack-and-architecture.md` which has been consolidated into this single canonical file.
+
+## Operational notes (quick pointer)
+
+For local runtime and developer operational notes (MailHog, setting temporary DB passwords, restart requirements, and actuator mail-health behavior) see `Documentation/setup-and-deployment.md` (section "Local Mail & Actuator notes").
