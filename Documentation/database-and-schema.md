@@ -1,28 +1,79 @@
-# MySQL DDL — SaaS Multi‑Tenant Inventory Platform
+# Database and Schema Management
 
-_Last updated: 2025-08-31 12:38 UTC_
+_Last updated: 2025-09-03_
 
-> **Tenancy model:** single database, **row‑scoped by `tenant_id`** on every business table.  
-> Enforce isolation in the application layer (JWT claim → `tenant_id`) and via **composite unique keys** including `tenant_id`.  
-> All tables use **InnoDB**, **utf8mb4**, and timestamps in UTC.
+## Overview
 
----
+This document covers the complete database schema design, entity relationships, connection configuration, and operational guidance for the multi-tenant SaaS inventory management system.
 
-## Session Defaults
+## Database Architecture
 
+### Tenancy Model
+- **Single database** with **row-level isolation** by `tenant_id`
+- All business tables include `tenant_id` for tenant scoping
+- Enforce isolation in application layer through JWT claims → `tenant_id`
+- Composite unique keys include `tenant_id` for data integrity
+- All tables use **InnoDB** engine with **utf8mb4** collation
+- Timestamps stored in UTC
+
+### Connection Configuration
+
+#### Current Connection Setup
+- **MySQL**: `localhost:3307` (Docker container)
+- **Redis**: `localhost:6379`  
+- **phpMyAdmin**: `http://localhost:8080`
+- **Redis Commander**: `http://localhost:8081`
+
+#### Connection Details
+```bash
+# MySQL connection from command line
+mysql -h 127.0.0.1 -P 3307 -u inventory_user -p
+# Password: inventory_pass
+
+# Test connection
+mysql -h 127.0.0.1 -P 3307 -u inventory_user -pinventory_pass -e "SELECT 'Success!' as status;"
+```
+
+#### Application Configuration Files
+- `src/main/resources/application.yml` - Spring Boot datasource config
+- `pom.xml` - Flyway configuration
+- `docker-compose.yml` - Docker services configuration
+
+### Connection Troubleshooting
+
+#### Common Issues and Solutions
+1. **Port Conflicts**: Changed Docker MySQL port from `3306` to `3307` to avoid conflicts with local MySQL
+2. **Authentication**: Fixed user authentication to use `mysql_native_password`
+3. **Host Resolution**: Use `127.0.0.1` instead of `localhost` to force TCP connection to Docker container
+
+#### Verification Commands
+```bash
+# Check Docker containers
+docker-compose ps
+
+# Test application startup
+mvn spring-boot:run
+
+# Run Flyway migrations
+mvn flyway:migrate
+```
+
+## Database Schema
+
+### Session Defaults
 ```sql
 SET NAMES utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 SET time_zone = '+00:00';
 ```
 
-## 1) Core: Tenants, Users, Roles, Orgs & Locations
+### 1. Core: Tenants, Users, Roles & Locations
 
 ```sql
 CREATE TABLE tenant (
   id            BIGINT PRIMARY KEY AUTO_INCREMENT,
   code          VARCHAR(64) NOT NULL UNIQUE,
   name          VARCHAR(255) NOT NULL,
-  status        ENUM('ACTIVE','SUSPENDED') NOT NULL DEFAULT 'ACTIVE',
+  status        VARCHAR(20) NOT NULL DEFAULT 'ACTIVE', -- Changed from ENUM
   created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
@@ -32,8 +83,8 @@ CREATE TABLE user_account (
   tenant_id     BIGINT NOT NULL,
   email         VARCHAR(320) NOT NULL,
   display_name  VARCHAR(255) NOT NULL,
-  password_hash VARBINARY(255) NULL, -- if using internal auth; otherwise OIDC
-  status        ENUM('ACTIVE','INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+  password_hash VARBINARY(255) NULL, -- BCrypt hash for internal auth
+  status        VARCHAR(20) NOT NULL DEFAULT 'ACTIVE', -- Changed from ENUM
   created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY uq_user_email_tenant (tenant_id, email),
@@ -60,8 +111,8 @@ CREATE TABLE location (
   tenant_id     BIGINT NOT NULL,
   code          VARCHAR(64) NOT NULL,
   name          VARCHAR(255) NOT NULL,
-  type          ENUM('STORE','WAREHOUSE') NOT NULL,
-  status        ENUM('ACTIVE','INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+  type          VARCHAR(20) NOT NULL, -- Changed from ENUM: 'STORE','WAREHOUSE'
+  status        VARCHAR(20) NOT NULL DEFAULT 'ACTIVE', -- Changed from ENUM
   created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY uq_loc_code_tenant (tenant_id, code),
@@ -70,7 +121,7 @@ CREATE TABLE location (
 ) ENGINE=InnoDB;
 ```
 
-## 2) Catalog: Categories, Items, Variants, Attributes
+### 2. Catalog: Categories, Items, Variants
 
 ```sql
 CREATE TABLE category (
@@ -94,7 +145,7 @@ CREATE TABLE item (
   name          VARCHAR(255) NOT NULL,
   brand         VARCHAR(128),
   category_id   BIGINT NULL,
-  status        ENUM('DRAFT','ACTIVE','DISCONTINUED') NOT NULL DEFAULT 'ACTIVE',
+  status        VARCHAR(20) NOT NULL DEFAULT 'ACTIVE', -- 'DRAFT','ACTIVE','DISCONTINUED'
   created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY uq_item_sku_tenant (tenant_id, sku),
@@ -110,7 +161,7 @@ CREATE TABLE item_variant (
   item_id       BIGINT NOT NULL,
   variant_sku   VARCHAR(64) NOT NULL,
   attributes_json JSON NULL, -- size/color, etc.
-  status        ENUM('ACTIVE','DISCONTINUED') NOT NULL DEFAULT 'ACTIVE',
+  status        VARCHAR(20) NOT NULL DEFAULT 'ACTIVE', -- 'ACTIVE','DISCONTINUED'
   created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY uq_variant_sku_tenant (tenant_id, variant_sku),
@@ -121,7 +172,7 @@ CREATE TABLE item_variant (
 ) ENGINE=InnoDB;
 ```
 
-## 3) Inventory: Ledger, Summary, Serial/Lot (optional)
+### 3. Inventory: Ledger, Summary, Serial/Lot Tracking
 
 ```sql
 CREATE TABLE inventory_ledger (
@@ -129,7 +180,7 @@ CREATE TABLE inventory_ledger (
   tenant_id     BIGINT NOT NULL,
   location_id   BIGINT NOT NULL,
   variant_id    BIGINT NOT NULL,
-  ref_type      ENUM('RECEIPT','SHIPMENT','TRANSFER','ADJUSTMENT','COUNT') NOT NULL,
+  ref_type      VARCHAR(20) NOT NULL, -- 'RECEIPT','SHIPMENT','TRANSFER','ADJUSTMENT','COUNT'
   ref_id        VARCHAR(64) NOT NULL,
   qty_delta     INT NOT NULL, -- positive/negative
   reason_code   VARCHAR(32),
@@ -170,7 +221,7 @@ CREATE TABLE lot (
 ) ENGINE=InnoDB;
 ```
 
-## 4) Suppliers, Purchasing & Receiving
+### 4. Suppliers, Purchasing & Receiving
 
 ```sql
 CREATE TABLE supplier (
@@ -179,7 +230,7 @@ CREATE TABLE supplier (
   code          VARCHAR(64) NOT NULL,
   name          VARCHAR(255) NOT NULL,
   contact_email VARCHAR(320),
-  status        ENUM('ACTIVE','INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+  status        VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
   created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY uq_supplier_code (tenant_id, code),
@@ -192,7 +243,7 @@ CREATE TABLE purchase_order (
   supplier_id   BIGINT NOT NULL,
   location_id   BIGINT NOT NULL, -- deliver-to
   code          VARCHAR(64) NOT NULL,
-  status        ENUM('DRAFT','APPROVED','PARTIAL','RECEIVED','CANCELLED') NOT NULL DEFAULT 'DRAFT',
+  status        VARCHAR(20) NOT NULL DEFAULT 'DRAFT', -- 'DRAFT','APPROVED','PARTIAL','RECEIVED','CANCELLED'
   eta_date      DATE NULL,
   created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -243,7 +294,7 @@ CREATE TABLE receipt_line (
 ) ENGINE=InnoDB;
 ```
 
-## 5) Transfers & Adjustments
+### 5. Transfers & Adjustments
 
 ```sql
 CREATE TABLE transfer_order (
@@ -252,7 +303,7 @@ CREATE TABLE transfer_order (
   code          VARCHAR(64) NOT NULL,
   source_loc_id BIGINT NOT NULL,
   dest_loc_id   BIGINT NOT NULL,
-  status        ENUM('DRAFT','DISPATCHED','RECEIVED','CANCELLED') NOT NULL DEFAULT 'DRAFT',
+  status        VARCHAR(20) NOT NULL DEFAULT 'DRAFT', -- 'DRAFT','DISPATCHED','RECEIVED','CANCELLED'
   created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY uq_to_code (tenant_id, code),
@@ -299,7 +350,7 @@ CREATE TABLE adjustment_line (
 ) ENGINE=InnoDB;
 ```
 
-## 6) Pricing & Promotions (minimal)
+### 6. Pricing & Promotions
 
 ```sql
 CREATE TABLE price_list (
@@ -327,7 +378,7 @@ CREATE TABLE price_list_item (
 ) ENGINE=InnoDB;
 ```
 
-## 7) Integration & Extensibility
+### 7. Integration & Extensibility
 
 ```sql
 -- Outbox for reliable event publishing (Debezium-friendly)
@@ -351,16 +402,61 @@ CREATE TABLE webhook_subscription (
   event_type    VARCHAR(64) NOT NULL,
   target_url    VARCHAR(1024) NOT NULL,
   secret        VARCHAR(255) NULL,
-  status        ENUM('ACTIVE','INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+  status        VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
   UNIQUE KEY uq_wh (tenant_id, event_type, target_url),
   CONSTRAINT fk_wh_tenant FOREIGN KEY (tenant_id) REFERENCES tenant(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 ```
 
-## 8) Indexing & Performance Notes
+## Entity Relationship Diagram
 
-- Add **covering indexes** for frequent queries (e.g., `(tenant_id, sku)` / `(tenant_id, location_id, variant_id)`).
-- Consider **partitioning `inventory_ledger` by RANGE on `ts`** for high‑volume tenants:
+```mermaid
+erDiagram
+  TENANT ||--o{ USER_ACCOUNT : "has"
+  TENANT ||--o{ LOCATION : "has"
+  TENANT ||--o{ CATEGORY : "has"
+  TENANT ||--o{ ITEM : "has"
+  TENANT ||--o{ ITEM_VARIANT : "has"
+  TENANT ||--o{ SUPPLIER : "has"
+  TENANT ||--o{ PRICE_LIST : "has"
+  TENANT ||--o{ STOCK_SUMMARY : "has"
+  TENANT ||--o{ INVENTORY_LEDGER : "has"
+
+  USER_ACCOUNT ||--o{ USER_ROLE : "assigned"
+  ROLE ||--o{ USER_ROLE : "granted"
+
+  CATEGORY ||--o{ ITEM : "categorizes"
+  ITEM ||--o{ ITEM_VARIANT : "variants"
+  ITEM_VARIANT ||--o{ STOCK_SUMMARY : "summarized"
+  ITEM_VARIANT ||--o{ INVENTORY_LEDGER : "moves"
+  LOCATION ||--o{ STOCK_SUMMARY : "holds"
+  LOCATION ||--o{ INVENTORY_LEDGER : "moves"
+
+  SUPPLIER ||--o{ PURCHASE_ORDER : "issues"
+  PURCHASE_ORDER ||--o{ PURCHASE_ORDER_LINE : "contains"
+  PURCHASE_ORDER ||--o{ RECEIPT : "receives"
+  RECEIPT ||--o{ RECEIPT_LINE : "contains"
+  RECEIPT_LINE ||--o{ LOT : "optional"
+
+  TRANSFER_ORDER ||--o{ TRANSFER_LINE : "contains"
+  ADJUSTMENT ||--o{ ADJUSTMENT_LINE : "contains"
+
+  PRICE_LIST ||--o{ PRICE_LIST_ITEM : "prices"
+  ITEM_VARIANT ||--o{ PRICE_LIST_ITEM : "priced"
+```
+
+## Database Performance & Optimization
+
+### Indexing Strategy
+
+#### Required Indexes
+- Add **covering indexes** for frequent queries (e.g., `(tenant_id, sku)` / `(tenant_id, location_id, variant_id)`)
+- Proper indexing on search fields for user management
+- Pagination support for user lists
+- Query optimization for role lookups
+
+#### Partitioning for High Volume
+Consider **partitioning `inventory_ledger` by RANGE on `ts`** for high‑volume tenants:
 
 ```sql
 ALTER TABLE inventory_ledger
@@ -370,12 +466,24 @@ PARTITION BY RANGE (TO_DAYS(ts)) (
 );
 ```
 
-## 9) Referential Integrity & Cascades
+### Connection Pooling
+- Configure appropriate connection pool sizes
+- Use read replicas for reporting queries
+- Route queries via ProxySQL/HAProxy for load balancing
 
-- Most child tables use `ON DELETE CASCADE` from parents within the same bounded context.
-- Cross‑context FKs use `ON DELETE RESTRICT` to preserve data integrity.
+## Referential Integrity
 
-## 10) Seed & System Data (examples)
+### CASCADE Rules
+- Most child tables use `ON DELETE CASCADE` from parents within the same bounded context
+- Cross‑context FKs use `ON DELETE RESTRICT` to preserve data integrity
+- Soft deletes for user accounts maintain audit trails
+
+### Business Constraints
+- Composite unique keys include `tenant_id` for multi-tenant isolation
+- CHECK constraints for business rules (e.g., source_loc_id <> dest_loc_id)
+- Idempotency constraints prevent duplicate integration records
+
+## Seed & System Data
 
 ```sql
 INSERT INTO role(code, name) VALUES
@@ -387,19 +495,110 @@ INSERT INTO role(code, name) VALUES
 INSERT INTO tenant(code, name) VALUES ('demo', 'Demo Tenant');
 ```
 
----
+## Migration Management
 
-### Notes for SaaS Hardening
+### Schema Evolution Strategy
+- Use Flyway for database migrations
+- Never modify already-applied migration files
+- Add forward migrations for schema changes (e.g., `V9__...sql`)
+- Test migrations in staging environment first
 
-- Add **row-level filters** in the application for every query by `tenant_id`.
-- Use **read replicas** for reporting; route via ProxySQL/HAProxy.
-- Encrypt sensitive columns at rest if needed; restrict PII exposure.
-- Implement **per-tenant quotas** and rate-limit policies at the API gateway.
+### Recent Schema Changes (V4-V8)
+Several columns were converted from MySQL `ENUM` to `VARCHAR` to match JPA `@Enumerated(EnumType.STRING)` mappings:
+- `tenant.status`
+- `user_account.status`
+- `location.type` and `location.status`
+- Other enum-based fields
 
-## Updates (2025-09-03)
+### Migration Commands
+```bash
+# Run migrations
+mvn flyway:migrate
 
-Important schema and migration notes:
+# Check migration status
+mvn flyway:info
 
-- Several columns in the live development database that were originally defined as MySQL `ENUM` (for example: `tenant.status`, `user_account.status`, `location.type`, `location.status`, and `audit_log.action_type`) were converted to `VARCHAR` via forward Flyway migrations (V4 through V8). The conversions were necessary because the application maps enums using JPA's `@Enumerated(EnumType.STRING)`, which expects string-based columns (VARCHAR) and caused Hibernate schema-validation to fail when the columns remained ENUM.
-- Recommendation: for new schema work, prefer using `VARCHAR` (with a reasonable length) for columns that map to Java enums with `EnumType.STRING`. If you must use `ENUM` at the DDL level, ensure the JPA mapping and Hibernate validation are adjusted accordingly, or skip validation for that table.
-- Migration policy reminder: do not modify already-applied migration files. To change a live database schema, add a new forward migration (e.g., `V9__...sql`) that performs the necessary `ALTER TABLE ... MODIFY COLUMN ... VARCHAR(...)` and run Flyway `migrate`.
+# Validate migrations
+mvn flyway:validate
+```
+
+### Password Hash Storage
+When updating `password_hash` fields directly in SQL, use binary literals to preserve BCrypt formatting:
+```sql
+UPDATE user_account SET password_hash = _binary'$2b$...' WHERE id = ?;
+```
+
+## SaaS Security & Hardening
+
+### Multi-Tenant Isolation
+- Add **row-level filters** in the application for every query by `tenant_id`
+- Validate tenant access in all service layer operations
+- Use JWT claims to enforce tenant boundaries
+- Implement tenant-specific rate limiting
+
+### Data Protection
+- Encrypt sensitive columns at rest if needed
+- Restrict PII exposure in logs and exports
+- Implement **per-tenant quotas** at the API gateway
+- Regular security audits of tenant data access
+
+### Backup and Recovery
+- Daily automated backups with point-in-time recovery
+- Cross-region backup replication
+- Tenant-specific data export capabilities
+- GDPR compliance for data deletion requests
+
+## Monitoring and Maintenance
+
+### Performance Monitoring
+- Track query performance and slow queries
+- Monitor connection pool utilization
+- Alert on table growth rates for partitioning needs
+- Database replication lag monitoring
+
+### Regular Maintenance
+- Analyze table statistics for query optimization
+- Cleanup expired sessions and tokens
+- Archive old audit logs based on retention policies
+- Update table statistics for query planner
+
+### Health Checks
+```sql
+-- Connection test
+SELECT 1 as health_check;
+
+-- Tenant isolation verification
+SELECT COUNT(DISTINCT tenant_id) as tenant_count FROM user_account;
+
+-- Recent activity check
+SELECT COUNT(*) as recent_logins 
+FROM inventory_ledger 
+WHERE ts >= DATE_SUB(NOW(), INTERVAL 1 HOUR);
+```
+
+## Operational Notes
+
+### Environment Setup
+1. Ensure Docker containers are running: `docker-compose ps`
+2. Apply migrations: `mvn flyway:migrate`
+3. Start application: `mvn spring-boot:run`
+4. Verify connectivity with health checks
+
+### Development Guidelines
+- Prefer JDK 17 for local development
+- Ensure IDE and terminal use the same `JAVA_HOME`
+- Use `127.0.0.1` instead of `localhost` for Docker MySQL connections
+- Test schema changes in development environment first
+
+### Production Considerations
+- Use separate read replicas for reporting
+- Implement proper backup and disaster recovery
+- Monitor tenant-level resource usage
+- Configure appropriate connection timeouts and retries
+
+## References
+
+This document consolidates information from:
+- database_schema_saasmode.md
+- er_diagram.md
+- DATABASE_CONNECTION_FIX.md

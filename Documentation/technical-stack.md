@@ -1,27 +1,44 @@
 # Technical Stack
+<!-- Consolidated technical stack and architecture. This file is the canonical tech-stack doc. -->
 
-_Last updated: 2025-09-03_
+# Technical Stack & Architecture
 
-This document summarizes the primary technologies and local development tooling for the project.
+_Last updated: 2025-09-04_
+
+This document is the canonical reference for the project's technology stack, architecture notes, and developer tooling.
 
 ## Backend
-- Java 17+, Spring Boot 3.x, Spring Data JPA, Spring Security
-- MySQL 8, Flyway migrations, Redis for caching/session
-- JWT for auth, BCrypt for passwords
 
-## Build & Tooling
-- Maven 3.8+, JUnit 5, Mockito, Testcontainers
-- CI: GitHub Actions (or GitLab CI)
+- Java 17+ (LTS)
+- Spring Boot 3.x, Spring Data JPA, Spring Web
+- Spring Security 6.x with JWT for stateless auth
+- BCrypt for password hashing
 
-## Dev & Infra
-- Docker/Docker Compose for local infra
-- Kubernetes + Helm for staging/prod
-- Observability: Prometheus, Grafana, Loki, Jaeger
+## Database
 
-## Frontend (UI)
-- React / TypeScript or similar modern SPA stack
-- Component library + Storybook, accessibility testing
+- MySQL 8 (InnoDB), Flyway for migrations
+- Redis for caching and session data
+
+## Build & Test Tooling
+
+- Maven 3.8+
+- JUnit 5, Mockito, Testcontainers for integration tests
+- CI: GitHub Actions (recommended)
+
+## Infrastructure & Observability
+
+- Docker & Docker Compose for local infra
+- Kubernetes + Helm for staging/production
+- Observability: Prometheus, Grafana, Loki, Jaeger/Tempo
+
+## Frontend
+
+- Recommended: React + TypeScript (or equivalent modern SPA)
+- Component library, Storybook for UI development
 
 ## Notes
-- Prefer JDK 17 for local development; `spring-boot-maven-plugin` pinned in `pom.xml` for consistent behavior.
-- Database enum→varchar migrations live in `src/main/resources/db/migration/`.
+
+- Use JDK 17 for local development. Pin `spring-boot-maven-plugin` in `pom.xml` for consistent builds.
+- Database migrations (including enum→varchar conversions) live in `src/main/resources/db/migration/`.
+
+For fuller architecture details and future microservices plans, see `Documentation/archived/tech-stack-and-architecture.md` which has been consolidated into this single canonical file.
