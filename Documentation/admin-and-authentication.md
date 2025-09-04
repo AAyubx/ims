@@ -1,12 +1,38 @@
-# User Authentication Module Design
+# Admin and Authentication Management
+
 _Last updated: 2025-09-03_
 
 ## Overview
-This module handles user authentication, session management, password policies, and security controls for the inventory management system. It provides secure login, password management, and session tracking capabilities.
+
+This module handles all administrative user management functions and user authentication for the inventory management system. It provides comprehensive user lifecycle management, authentication, session management, password policies, and security controls.
 
 ## Core Features
 
-### 1. User Login System
+### 1. User Account Management
+
+- **Create User Account**
+  - Employee code (unique within tenant)
+  - Email address (unique within tenant)
+  - Display name
+  - Role assignment (dropdown selection)
+  - Initial password generation
+  - Account status (ACTIVE/INACTIVE)
+
+- **Update User Account**
+  - Modify display name
+  - Change employee code
+  - Update role assignments
+  - Change account status
+  - Force password reset
+
+- **Deactivate User Account**
+  - Soft delete (status = INACTIVE)
+  - Maintain audit trail
+  - Revoke all active sessions
+  - Prevent future logins
+
+### 2. User Authentication System
+
 - **Email-based Authentication**
   - Email and password login
   - Case-insensitive email handling
@@ -24,24 +50,49 @@ This module handles user authentication, session management, password policies, 
   - Session timeout (8 hours default)
   - Concurrent session management
 
-### 2. Password Management
+### 3. Role Management
+
+- **Role Assignment**
+  - Multiple roles per user supported
+  - Role-based access control (RBAC)
+  - Hierarchical permissions
+
+- **Available Roles**
+  - `ADMIN` - Full system access
+  - `MANAGER` - Store/Warehouse management
+  - `CLERK` - Operations access
+  - `VIEWER` - Read-only access
+
+### 4. Password Management
+
 - **Password Policy Enforcement**
   - Minimum 8 characters
-  - Required character types: uppercase, lowercase, digit, special
-  - Password history tracking (last 3 passwords)
-  - Password expiry every 60 days (configurable)
+  - Must contain: uppercase, lowercase, digit, special character
+  - Cannot reuse last 3 passwords
+  - 60-day expiry (configurable)
 
-- **Password Reset Features**
-  - Secure password reset tokens
-  - 24-hour token expiry
+- **Password Reset Options**
+  - Admin-initiated password reset
+  - Self-service password reset
+  - Force password change on next login
+  - Generate secure temporary passwords
+  - Password expiry notifications
+  - 24-hour token expiry for reset tokens
   - Email-based reset process
-  - Force password change on login
 
-### 3. Account Security
-- **Account Status Management**
-  - Active/Inactive status validation
-  - Temporary account suspension
-  - Permanent account deactivation
+### 5. Account Security Features
+
+- **Login Attempt Monitoring**
+  - Track failed login attempts
+  - Automatic account lockout (5 attempts)
+  - 30-minute lockout duration (configurable)
+  - Manual unlock by admin
+
+- **Session Management**
+  - View active user sessions
+  - Force session termination
+  - Session timeout configuration
+  - Concurrent session limits
 
 - **Security Monitoring**
   - IP address tracking
@@ -116,6 +167,32 @@ DELETE /api/auth/sessions/{sessionId}      # Terminate specific session
 DELETE /api/auth/sessions                  # Terminate all sessions
 ```
 
+### User Management (Admin)
+```http
+GET    /api/admin/users                    # List all users
+POST   /api/admin/users                    # Create new user
+GET    /api/admin/users/{id}               # Get user details
+PUT    /api/admin/users/{id}               # Update user
+DELETE /api/admin/users/{id}               # Deactivate user
+POST   /api/admin/users/{id}/reset-password # Reset user password
+POST   /api/admin/users/{id}/unlock        # Unlock user account
+GET    /api/admin/users/{id}/sessions      # Get user sessions
+DELETE /api/admin/users/{id}/sessions/{sessionId} # Terminate session
+```
+
+### Role Management (Admin)
+```http
+GET    /api/admin/roles                    # List all roles
+POST   /api/admin/users/{id}/roles         # Assign role to user
+DELETE /api/admin/users/{id}/roles/{roleId} # Remove role from user
+```
+
+### Configuration Management (Admin)
+```http
+GET    /api/admin/config                   # Get system configuration
+PUT    /api/admin/config                   # Update configuration
+```
+
 ## Data Transfer Objects (DTOs)
 
 ### LoginRequest
@@ -141,6 +218,36 @@ public class LoginResponse {
     private UserInfo userInfo;
     private boolean mustChangePassword;
     private LocalDateTime passwordExpiresAt;
+}
+```
+
+### CreateUserRequest
+```java
+public class CreateUserRequest {
+    @NotBlank private String employeeCode;
+    @Email private String email;
+    @NotBlank private String displayName;
+    @NotEmpty private Set<Long> roleIds;
+    private String initialPassword; // Optional, will generate if null
+}
+```
+
+### UserResponse
+```java
+public class UserResponse {
+    private Long id;
+    private String employeeCode;
+    private String email;
+    private String displayName;
+    private UserStatus status;
+    private Set<RoleDto> roles;
+    private int failedLoginAttempts;
+    private LocalDateTime accountLockedUntil;
+    private LocalDateTime lastLoginAt;
+    private LocalDateTime passwordExpiresAt;
+    private boolean mustChangePassword;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }
 ```
 
@@ -182,6 +289,34 @@ public class ResetPasswordRequest {
 
 ## Service Layer Architecture
 
+### AdminUserService
+```java
+@Service
+public class AdminUserService {
+
+    // User CRUD operations
+    Page<UserResponse> getAllUsers(Pageable pageable);
+    UserResponse getUserById(Long id);
+    UserResponse createUser(CreateUserRequest request);
+    UserResponse updateUser(Long id, UpdateUserRequest request);
+    void deactivateUser(Long id);
+
+    // Password management
+    String resetUserPassword(Long id);
+    void forcePasswordChange(Long id);
+    void unlockUserAccount(Long id);
+
+    // Session management
+    List<UserSessionDto> getUserSessions(Long id);
+    void terminateUserSession(Long userId, String sessionId);
+    void terminateAllUserSessions(Long userId);
+
+    // Role management
+    UserResponse assignRoleToUser(Long userId, Long roleId);
+    UserResponse removeRoleFromUser(Long userId, Long roleId);
+}
+```
+
 ### AuthenticationService
 ```java
 @Service
@@ -212,26 +347,29 @@ public class AuthenticationService {
 
 ### PasswordService
 ```java
-@Service  
+@Service
 public class PasswordService {
+
+    // Password generation and validation
+    String generateSecurePassword();
+    boolean isPasswordValid(String password);
+    boolean canReusePassword(Long userId, String hashedPassword);
+    void savePasswordHistory(Long userId, String hashedPassword);
+    LocalDateTime calculatePasswordExpiry();
+
+    // Password policy validation
+    PasswordValidationResult validatePassword(String password);
+    boolean isPasswordExpired(LocalDateTime passwordExpiresAt);
+    boolean isPasswordExpiringSoon(LocalDateTime passwordExpiresAt, int warningDays);
     
-    // Password validation and hashing
+    // Password encoding and validation
     boolean validatePassword(String rawPassword, String hashedPassword);
     String hashPassword(String rawPassword);
     PasswordValidationResult validatePasswordPolicy(String password);
     
-    // Password history
-    boolean canReusePassword(Long userId, String newPasswordHash);
-    void savePasswordHistory(Long userId, String passwordHash);
-    
-    // Password expiry
-    LocalDateTime calculatePasswordExpiry();
-    boolean isPasswordExpired(LocalDateTime passwordExpiresAt);
-    List<UserDto> getUsersWithExpiringPasswords(int daysAhead);
-    
-    // Password generation
-    String generateSecurePassword();
+    // Reset token management
     String generateResetToken();
+    List<UserDto> getUsersWithExpiringPasswords(int daysAhead);
 }
 ```
 
@@ -346,9 +484,49 @@ public class SecurityConfig {
 }
 ```
 
-## Validation and Error Handling
+## Security Considerations
 
-### Password Validation
+### Authorization
+- Only ADMIN role can access user management endpoints
+- Audit all admin actions
+- Multi-factor authentication for admin operations
+- Rate limiting on sensitive operations
+
+### Data Protection
+- Hash passwords using BCrypt with salt
+- Encrypt sensitive data in transit and at rest
+- Implement data masking for logs
+- GDPR compliance for user data
+
+### Audit Trail
+- Log all user management operations
+- Track who performed each action
+- Maintain immutable audit records
+- Regular audit report generation
+
+## Validation Rules
+
+### Employee Code
+- Alphanumeric characters only
+- 3-32 characters length
+- Unique within tenant
+- Cannot be changed once set (business rule)
+
+### Email Address
+- Valid email format
+- Maximum 320 characters
+- Unique within tenant
+- Case insensitive comparison
+
+### Password Requirements
+- Minimum 8 characters
+- At least one uppercase letter
+- At least one lowercase letter
+- At least one digit
+- At least one special character (!@#$%^&*)
+- Cannot contain username or email
+
+## Password Validation
 ```java
 public enum PasswordValidationError {
     TOO_SHORT,
@@ -370,6 +548,20 @@ public class PasswordValidationResult {
 }
 ```
 
+## Error Handling
+
+### Common Error Responses
+```http
+400 Bad Request - Validation errors
+401 Unauthorized - Authentication required
+403 Forbidden - Insufficient permissions
+404 Not Found - User not found
+409 Conflict - Duplicate employee code/email
+422 Unprocessable Entity - Business rule violations
+429 Too Many Requests - Rate limit exceeded
+500 Internal Server Error - System errors
+```
+
 ### Authentication Exceptions
 ```java
 public class AuthenticationException extends RuntimeException {
@@ -381,6 +573,12 @@ public class AuthenticationException extends RuntimeException {
     public static class TokenExpiredException extends AuthenticationException {}
 }
 ```
+
+### Business Rule Violations
+- Cannot deactivate the last admin user
+- Cannot remove admin role from yourself
+- Cannot unlock account with expired password
+- Cannot create user with duplicate employee code
 
 ## Audit and Monitoring
 
@@ -420,7 +618,23 @@ public class SecurityMetricsService {
 }
 ```
 
-## Configuration Properties
+## Configuration Parameters
+
+### System Configuration Keys
+```properties
+password.expiry.days=60
+password.min.length=8
+password.require.uppercase=true
+password.require.lowercase=true
+password.require.digit=true
+password.require.special=true
+password.history.count=3
+login.max.attempts=5
+login.lockout.minutes=30
+session.timeout.minutes=480
+password.reset.token.expiry.hours=24
+admin.mfa.required=true
+```
 
 ### Application Properties
 ```yaml
@@ -454,76 +668,58 @@ app:
 ## Testing Strategy
 
 ### Unit Tests
-```java
-@ExtendWith(MockitoExtension.class)
-class AuthenticationServiceTest {
-    
-    @Test
-    void shouldLoginSuccessfullyWithValidCredentials();
-    
-    @Test
-    void shouldThrowExceptionForInvalidCredentials();
-    
-    @Test
-    void shouldLockAccountAfterMaxFailedAttempts();
-    
-    @Test
-    void shouldValidatePasswordPolicy();
-    
-    @Test
-    void shouldPreventPasswordReuse();
-}
-```
+- Service layer business logic
+- Password validation rules
+- Role assignment logic
+- Security validations
+- Authentication service tests
+- Password policy enforcement
 
 ### Integration Tests
-```java
-@SpringBootTest
-@AutoConfigureTestDatabase
-class AuthenticationIntegrationTest {
-    
-    @Test
-    void shouldAuthenticateUserEndToEnd();
-    
-    @Test
-    void shouldHandlePasswordResetFlow();
-    
-    @Test
-    void shouldManageSessionLifecycle();
-}
-```
+- Database operations
+- API endpoint tests
+- Authentication/authorization
+- Audit logging verification
+- End-to-end authentication flows
+- Password reset flows
+- Session management lifecycle
 
 ### Security Tests
-```java
-@SpringBootTest
-@AutoConfigureTestDatabase  
-class SecurityTest {
-    
-    @Test
-    void shouldPreventBruteForceAttacks();
-    
-    @Test
-    void shouldValidateJWTTokens();
-    
-    @Test
-    void shouldEnforceRoleBasedAccess();
-}
-```
+- SQL injection prevention
+- XSS protection
+- Authentication bypass attempts
+- Authorization boundary tests
+- Brute force attack prevention
+- JWT token validation
+- Role-based access control
 
-## Performance Optimization
+## Performance Considerations
+
+### Database Optimization
+- Proper indexing on search fields
+- Pagination for user lists
+- Query optimization for role lookups
+- Connection pooling configuration
+- Indexing on email, session_id
+- Partition login_attempts table by date
+- Regular cleanup of expired sessions and tokens
 
 ### Caching Strategy
-- Cache user permissions in Redis
+- Cache user roles and permissions
+- Cache system configuration
+- Session data caching
+- Cache invalidation on updates
 - Cache password policies and configurations
 - Cache JWT token blacklist for logout
 - Session data caching with TTL
 
-### Database Optimization
-- Proper indexing on email, session_id
-- Partition login_attempts table by date
-- Regular cleanup of expired sessions and tokens
-- Connection pooling configuration
+## Deployment Considerations
 
-## Deployment and Operations
+### Configuration Management
+- Environment-specific configurations
+- Secret management for sensitive data
+- Database migration scripts
+- Health check endpoints
 
 ### Environment Variables
 ```bash
@@ -548,25 +744,56 @@ public class AuthHealthIndicator implements HealthIndicator {
 }
 ```
 
-### Monitoring Alerts
+### Monitoring and Alerting
+- Failed login attempt monitoring
+- Account lockout alerts
+- Password expiry notifications
+- System configuration changes
 - Failed login attempts spike
 - Account lockout rate increase
 - JWT token validation failures
 - Session cleanup failures
 - Database connection issues
 
+## Operational Notes
+
+### Database Schema Updates
+- When applying schema migrations that change enum types to varchar, ensure Flyway forward migrations are used and tested in staging first.
+- For DB updates to password_hash, write as binary literal to preserve leading `$` for bcrypt when using SQL: `UPDATE user_account SET password_hash = _binary'$2b$...'`.
+- Several database columns used for account and tenant `status` were converted from MySQL `ENUM` to `VARCHAR` via forward Flyway migrations (V4..V8) so they match JPA `@Enumerated(EnumType.STRING)` mappings used by the application.
+- If you encounter Hibernate validation errors about column types during startup, apply the missing migration(s) and re-run migrations before starting the service.
+- Developer runtime: prefer JDK 17 for running the application locally. Ensure IDE and terminal use the same `JAVA_HOME`.
+
 ## Future Enhancements
 
-### Advanced Security
-- Multi-factor authentication (TOTP, SMS)
+### Advanced Security Features
+- Multi-factor authentication (MFA)
+- Single sign-on (SSO) integration
+- OAuth 2.0 / OpenID Connect support
+- Advanced threat detection
 - Biometric authentication support
-- OAuth 2.0 / OpenID Connect integration
-- Social login providers
 - Risk-based authentication
+- Social login providers
 
-### User Experience
+### User Experience Improvements
+- Self-service password reset
+- User profile management
+- Email notifications for account changes
+- Mobile-friendly admin interface
 - Remember device functionality
 - Progressive web app support
-- Single sign-on (SSO) integration
 - Password-less authentication
 - Advanced password strength meter
+
+### Compliance Features
+- GDPR data export/deletion
+- HIPAA compliance auditing
+- SOC 2 compliance reporting
+- Advanced audit analytics
+
+## References
+
+This document consolidates information from:
+- ADMIN_USER_MANAGEMENT_DESIGN.md
+- USER_AUTHENTICATION_DESIGN.md  
+- admin-user-management.md
