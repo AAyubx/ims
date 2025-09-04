@@ -184,6 +184,18 @@ spring:
   mail:
     host: localhost
     port: 1025 # MailHog default port for testing
+    # In development we use a local test SMTP (MailHog) which does not require
+    # authentication. Override the global auth settings for the dev profile so
+    # the mail health check doesn't fail when MAIL_USERNAME / MAIL_PASSWORD
+    # are not set on developer machines.
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
 
 logging:
   level:
