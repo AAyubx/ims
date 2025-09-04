@@ -62,13 +62,27 @@ docker-compose ps redis
 docker exec -it inventory-redis redis-cli ping
 ```
 
-9. Code style checks
+9. Frontend development server
+
+```bash
+# Start frontend development server
+cd inventory-ui && npm run dev
+
+# Install frontend dependencies if needed
+cd inventory-ui && npm install
+
+# Build frontend for production
+cd inventory-ui && npm run build
+```
+
+10. Code style checks
 
 ```bash
 mvn checkstyle:check
 ```
 
 #### Catalog Service
+
 ## Step-by-Step Setup
 
 This section expands the quick commands into a reproducible, step-by-step setup for local development.
@@ -166,7 +180,7 @@ mvn flyway:migrate
 mvn flyway:info
 ```
 
-### Step 6: Start the Application
+### Step 6: Start the Backend Application
 
 ```bash
 # Start the Spring Boot application
@@ -176,20 +190,40 @@ mvn spring-boot:run
 java -jar target/inventory-management-system-1.0.0-SNAPSHOT.jar
 ```
 
-### Step 7: Verify Application is Running
+### Step 7: Start the Frontend Application
 
-1. Health check
+```bash
+# Navigate to frontend directory
+cd inventory-ui
+
+# Install dependencies (first time only)
+npm install
+
+# Start development server
+npm run dev
+```
+
+**Note**: If you encounter 401 authentication errors from the frontend, verify that the API base URL is correctly configured in `inventory-ui/src/lib/api.ts`. It should be set to `http://localhost:8080/api` (without `/v1`) to match the backend API structure.
+
+### Step 8: Verify Applications are Running
+
+1. Backend health check
 
 ```bash
 curl http://localhost:8080/api/actuator/health
 ```
 
-2. API documentation
+2. Frontend application
+
+- Frontend App: http://localhost:3000
+- Login with: admin@demo.example / TempPassword123!
+
+3. API documentation
 
 - Swagger UI: http://localhost:8080/api/swagger-ui.html
 - API Docs: http://localhost:8080/api/api-docs
 
-3. Database and tooling
+4. Database and tooling
 
 - phpMyAdmin: http://localhost:8080 (if configured)
 - Redis Commander: http://localhost:8081 (if configured)
@@ -602,6 +636,7 @@ podDisruptionBudget:
 
 ### Development Commands
 
+**Backend Commands:**
 ```bash
 # View running containers
 docker-compose ps
@@ -617,6 +652,21 @@ mysql -h 127.0.0.1 -P 3307 -u inventory_user -p
 
 # Redis console access
 docker exec -it inventory-redis redis-cli
+```
+
+**Frontend Commands:**
+```bash
+# Start development server
+cd inventory-ui && npm run dev
+
+# Build for production
+cd inventory-ui && npm run build
+
+# Run type checking
+cd inventory-ui && npm run type-check
+
+# Run linting
+cd inventory-ui && npm run lint
 ```
 
 ### Production Commands
