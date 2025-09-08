@@ -1,6 +1,6 @@
 # Technology Stack and Architecture
 
-_Last updated: 2025-09-03_
+_Last updated: 2025-09-04_
 
 ## Overview
 
@@ -47,6 +47,14 @@ This document outlines the complete technology stack, architectural decisions, a
 - **Maven 3.8+** - Build automation and dependency management
 - **Docker & Docker Compose** - Containerization and local development
 - **Git** - Version control and collaboration
+
+### Infrastructure & Observability
+- **Docker & Docker Compose** - Local infrastructure setup
+- **Kubernetes + Helm** - Container orchestration for staging/production
+- **Prometheus** - Metrics collection and monitoring
+- **Grafana** - Visualization and alerting dashboards
+- **Loki** - Log aggregation and querying
+- **Jaeger/Tempo** - Distributed tracing and performance monitoring
 
 ---
 
@@ -660,8 +668,18 @@ class InventoryIntegrationTest {
 - **Clean Architecture**: Martin, Robert - "Clean Architecture"
 - **Spring Boot Best Practices**: Official Spring guides and documentation
 
+## Operational Notes
+
+For local runtime and developer operational notes (MailHog, setting temporary DB passwords, restart requirements, and actuator mail-health behavior) see `Documentation/setup-and-deployment.md` (section "Local Mail & Actuator notes").
+
+## Notes on JDK and Build Configuration
+
+- Use JDK 17 for local development. Pin `spring-boot-maven-plugin` in `pom.xml` for consistent builds.
+- Database migrations (including enum→varchar conversions) live in `src/main/resources/db/migration/`.
+
 ## Consolidated From
 This document consolidates information from:
 - TECH_STACK_REQUIREMENTS.md
 - development_plan.md  
 - microservices_integration_diagram.md
+- technical-stack.md (now removed to avoid duplication)
