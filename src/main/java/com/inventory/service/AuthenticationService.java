@@ -1,8 +1,10 @@
 package com.inventory.service;
 
 import com.inventory.dto.*;
+import com.inventory.entity.PasswordResetToken;
 import com.inventory.entity.UserAccount;
 import com.inventory.entity.UserSession;
+import com.inventory.repository.PasswordResetTokenRepository;
 import com.inventory.repository.UserAccountRepository;
 import com.inventory.security.JwtTokenProvider;
 import com.inventory.security.UserPrincipal;
@@ -33,6 +35,8 @@ public class AuthenticationService {
     private final LoginAttemptService loginAttemptService;
     private final PasswordService passwordService;
     private final UserAccountRepository userAccountRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final EmailService emailService;
 
     @Transactional
     public LoginResponse login(LoginRequest loginRequest, String ipAddress, String userAgent) {
@@ -193,23 +197,126 @@ public class AuthenticationService {
     }
 
     @Transactional
-    public void initiatePasswordReset(String email) {
+    public void initiatePasswordReset(String email, String ipAddress, String userAgent) {
         UserAccount user = userAccountRepository.findByEmailIgnoreCase(email)
                 .orElse(null);
 
         if (user == null) {
-            // Don't reveal if email exists or not
-            log.warn("Password reset requested for non-existent email: {}", email);
+            // Don't reveal if email exists or not - but still log for security monitoring
+            log.warn("Password reset requested for non-existent email: {} from IP: {}", email, ipAddress);
             return;
         }
 
-        String resetToken = passwordService.generateResetToken();
-        // In a real implementation, you would:
-        // 1. Store the reset token with expiry in database
-        // 2. Send email with reset link
+        // Check for rate limiting
+        LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
+        long recentTokenCount = passwordResetTokenRepository.countRecentTokensByEmail(email, oneHourAgo);
         
-        log.info("Password reset initiated for email: {}", email);
-        // TODO: Implement email sending and token storage
+        if (recentTokenCount >= 3) {
+            log.warn("Password reset rate limit exceeded for email: {} from IP: {}", email, ipAddress);
+            // Still don't reveal this to prevent enumeration
+            return;
+        }
+
+        // Invalidate any existing tokens for this user
+        passwordResetTokenRepository.invalidateUserTokens(user.getId(), LocalDateTime.now());
+
+        // Generate new reset token
+        String resetToken = passwordService.generateResetToken();
+        LocalDateTime expiresAt = LocalDateTime.now().plusHours(24); // 24 hour expiry
+
+        // Create and save reset token
+        PasswordResetToken passwordResetToken = new PasswordResetToken();
+        passwordResetToken.setTenant(user.getTenant());
+        passwordResetToken.setToken(resetToken);
+        passwordResetToken.setEmail(email.toLowerCase());
+        passwordResetToken.setUser(user);
+        passwordResetToken.setExpiresAt(expiresAt);
+        passwordResetToken.setIpAddress(ipAddress);
+        passwordResetToken.setUserAgent(userAgent);
+
+        passwordResetTokenRepository.save(passwordResetToken);
+
+        // Send reset email
+        try {
+            emailService.sendPasswordResetEmail(email, user.getDisplayName(), resetToken, expiresAt);
+            log.info("Password reset email sent successfully for email: {}", email);
+        } catch (Exception e) {
+            log.error("Failed to send password reset email for: {} - {}", email, e.getMessage());
+            // Don't throw exception to prevent revealing if email exists
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public boolean validateResetToken(String token) {
+        if (token == null || token.trim().isEmpty()) {
+            return false;
+        }
+
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(token)
+                .orElse(null);
+
+        return resetToken != null && resetToken.isValid();
+    }
+
+    @Transactional
+    public void resetPassword(String token, String newPassword, String ipAddress, String userAgent) {
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByTokenAndUsedAtIsNull(token)
+                .orElseThrow(() -> new BadCredentialsException("Invalid or expired reset token"));
+
+        if (!resetToken.isValid()) {
+            throw new BadCredentialsException("Reset token has expired");
+        }
+
+        UserAccount user = resetToken.getUser();
+
+        // Validate new password policy
+        PasswordService.PasswordValidationResult validation = 
+                passwordService.validatePasswordPolicy(newPassword);
+        
+        if (!validation.isValid()) {
+            throw new IllegalArgumentException("Password does not meet policy requirements: " + 
+                                             String.join(", ", validation.getErrors().stream()
+                                                     .map(error -> error.getMessage())
+                                                     .toList()));
+        }
+
+        // Check password reuse (allow if it's the same password - edge case)
+        if (!passwordService.canReusePassword(user.getId(), newPassword)) {
+            throw new IllegalArgumentException("Cannot reuse recent passwords");
+        }
+
+        // Update password
+        String hashedPassword = passwordService.hashPassword(newPassword);
+        user.setPasswordHash(hashedPassword.getBytes());
+        user.setPasswordExpiresAt(passwordService.calculatePasswordExpiry());
+        user.setMustChangePassword(false);
+        user.setFailedLoginAttempts(0);
+        user.setAccountLockedUntil(null);
+        
+        userAccountRepository.save(user);
+
+        // Save to password history
+        passwordService.savePasswordHistory(user.getId(), hashedPassword);
+
+        // Mark token as used
+        resetToken.markAsUsed();
+        passwordResetTokenRepository.save(resetToken);
+
+        // Invalidate any other unused tokens for this user
+        passwordResetTokenRepository.invalidateUserTokens(user.getId(), LocalDateTime.now());
+
+        // Terminate all existing sessions to force re-login
+        sessionService.terminateUserSessions(user.getId());
+
+        // Send confirmation email
+        try {
+            emailService.sendPasswordChangedNotification(user.getEmail(), user.getDisplayName(), ipAddress, userAgent);
+        } catch (Exception e) {
+            log.warn("Failed to send password changed notification to: {} - {}", user.getEmail(), e.getMessage());
+            // Don't throw exception for notification failure
+        }
+
+        log.info("Password reset completed successfully for user ID: {} via token", user.getId());
     }
 
     @Transactional(readOnly = true)

@@ -120,10 +120,14 @@ public class AuthController {
     @PostMapping("/forgot-password")
     @Operation(summary = "Forgot password", description = "Initiate password reset process")
     public ResponseEntity<ApiResponse<Void>> forgotPassword(
-            @Valid @RequestBody ForgotPasswordRequest request) {
+            @Valid @RequestBody ForgotPasswordRequest request,
+            HttpServletRequest httpRequest) {
         
         try {
-            authenticationService.initiatePasswordReset(request.getEmail());
+            String ipAddress = getClientIpAddress(httpRequest);
+            String userAgent = httpRequest.getHeader("User-Agent");
+            
+            authenticationService.initiatePasswordReset(request.getEmail(), ipAddress, userAgent);
             
             // Always return success to prevent email enumeration
             return ResponseEntity.ok(ApiResponse.success(
@@ -141,7 +145,8 @@ public class AuthController {
     @PostMapping("/reset-password")
     @Operation(summary = "Reset password", description = "Reset password using reset token")
     public ResponseEntity<ApiResponse<Void>> resetPassword(
-            @Valid @RequestBody ResetPasswordRequest request) {
+            @Valid @RequestBody ResetPasswordRequest request,
+            HttpServletRequest httpRequest) {
         
         try {
             // Validate password confirmation
@@ -150,8 +155,10 @@ public class AuthController {
                         .body(ApiResponse.error("Password confirmation does not match"));
             }
             
-            // TODO: Implement password reset with token
-            // authenticationService.resetPassword(request);
+            String ipAddress = getClientIpAddress(httpRequest);
+            String userAgent = httpRequest.getHeader("User-Agent");
+            
+            authenticationService.resetPassword(request.getToken(), request.getNewPassword(), ipAddress, userAgent);
             
             return ResponseEntity.ok(ApiResponse.success("Password reset successful", null));
             
@@ -168,10 +175,14 @@ public class AuthController {
             @RequestBody ValidateTokenRequest request) {
         
         try {
-            // TODO: Implement token validation
-            // boolean isValid = authenticationService.validateResetToken(request.getToken());
+            boolean isValid = authenticationService.validateResetToken(request.getToken());
             
-            return ResponseEntity.ok(ApiResponse.success("Token is valid", null));
+            if (isValid) {
+                return ResponseEntity.ok(ApiResponse.success("Token is valid", null));
+            } else {
+                return ResponseEntity.badRequest()
+                        .body(ApiResponse.error("Invalid or expired token"));
+            }
             
         } catch (Exception e) {
             log.error("Token validation failed - {}", e.getMessage());

@@ -71,14 +71,17 @@ This module handles all administrative user management functions and user authen
   - Cannot reuse last 3 passwords
   - 60-day expiry (configurable)
 
-- **Password Reset Options**
+- **Password Reset System**
+  - Self-service password reset via email
   - Admin-initiated password reset
-  - Self-service password reset
+  - Secure token-based reset with 24-hour expiry
+  - Rate limiting (3 requests per hour per email)
+  - HTML email templates with Thymeleaf
+  - No user enumeration protection
   - Force password change on next login
   - Generate secure temporary passwords
   - Password expiry notifications
-  - 24-hour token expiry for reset tokens
-  - Email-based reset process
+  - Email confirmation notifications
 
 ### 5. Account Security Features
 
@@ -329,8 +332,8 @@ public class AuthenticationService {
     
     // Password operations
     void changePassword(Long userId, ChangePasswordRequest request);
-    void initiatePasswordReset(String email);
-    void resetPassword(ResetPasswordRequest request);
+    void initiatePasswordReset(String email, String ipAddress, String userAgent);
+    void resetPassword(String token, String newPassword, String ipAddress, String userAgent);
     boolean validateResetToken(String token);
     
     // Session management
@@ -776,14 +779,14 @@ public class AuthHealthIndicator implements HealthIndicator {
 - Social login providers
 
 ### User Experience Improvements
-- Self-service password reset
+- ✅ Self-service password reset with email verification
 - User profile management
-- Email notifications for account changes
+- ✅ Email notifications for account changes (password reset, password changed)
 - Mobile-friendly admin interface
 - Remember device functionality
 - Progressive web app support
 - Password-less authentication
-- Advanced password strength meter
+- ✅ Advanced password strength meter (frontend implementation)
 
 ### Compliance Features
 - GDPR data export/deletion

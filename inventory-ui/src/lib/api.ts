@@ -1,5 +1,5 @@
 import axios from "axios";
-import { LoginCredentials, LoginResponse } from "@/types/auth";
+import { LoginCredentials, LoginResponse, ForgotPasswordRequest, ResetPasswordRequest, ApiResponse } from "@/types/auth";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api";
@@ -52,6 +52,21 @@ export class AuthAPI {
 
   static async getCurrentUser() {
     const response = await apiClient.get("/auth/me");
+    return response.data;
+  }
+
+  static async forgotPassword(request: ForgotPasswordRequest): Promise<ApiResponse<void>> {
+    const response = await apiClient.post("/auth/forgot-password", request);
+    return response.data;
+  }
+
+  static async validateResetToken(token: string): Promise<ApiResponse<void>> {
+    const response = await apiClient.post("/auth/validate-token", { token });
+    return response.data;
+  }
+
+  static async resetPassword(request: ResetPasswordRequest): Promise<ApiResponse<void>> {
+    const response = await apiClient.post("/auth/reset-password", request);
     return response.data;
   }
 }

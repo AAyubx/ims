@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -209,6 +210,16 @@ export default function LoginPage() {
                   </>
                 )}
               </button>
+            </div>
+
+            {/* Forgot Password Link */}
+            <div className="text-center">
+              <Link 
+                href="/forgot-password"
+                className="text-sm text-blue-600 hover:text-blue-500 hover:underline"
+              >
+                Forgot your password?
+              </Link>
             </div>
           </form>
         </div>
