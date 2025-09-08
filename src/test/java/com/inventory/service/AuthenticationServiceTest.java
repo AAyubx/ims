@@ -63,6 +63,8 @@ public class AuthenticationServiceTest {
     @Mock private LoginAttemptService loginAttemptService;
     @Mock private UserAccountRepository userAccountRepository;
     @Mock private PasswordService passwordService;
+    @Mock private com.inventory.repository.PasswordResetTokenRepository passwordResetTokenRepository;
+    @Mock private EmailService emailService;
 
     private AuthenticationService authenticationService;
 
@@ -75,7 +77,9 @@ public class AuthenticationServiceTest {
         sessionService,
         loginAttemptService,
         passwordService,
-        userAccountRepository
+        userAccountRepository,
+        passwordResetTokenRepository,
+        emailService
     );
     }
 

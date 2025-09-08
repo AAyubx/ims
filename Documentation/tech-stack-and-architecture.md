@@ -28,8 +28,9 @@ This document outlines the complete technology stack, architectural decisions, a
 ### Security & Authentication
 - **Spring Security** - Core security framework and filters
 - **JWT (JSON Web Tokens)** - Stateless authentication and authorization
-- **BCrypt** - Secure password hashing algorithm
+- **BCrypt** - Secure password hashing algorithm (cost 12)
 - **OWASP Java Encoder** - Input sanitization and XSS prevention
+- **Password Reset System** - Secure token-based password reset with email notifications
 
 ### API & Documentation
 - **OpenAPI 3** (Swagger) - API specification and documentation
@@ -71,14 +72,15 @@ The current implementation follows a modular monolith pattern with clear domain 
 
 ### Core Domain Modules
 ```
-├── auth/           # Authentication & Authorization
+├── auth/           # Authentication & Authorization, Password Reset
 ├── catalog/        # Items, Categories, Variants
 ├── inventory/      # Stock Control & Movements  
 ├── purchasing/     # Suppliers, POs, Receiving
 ├── pricing/        # Price Lists & Promotions
 ├── orders/         # Reservations & Fulfillment
 ├── reporting/      # Analytics & Insights
-└── notifications/  # Alerts & Communications
+├── notifications/  # Alerts & Communications, Email Service
+└── security/       # Password Management, Token Validation
 ```
 
 ## Future Microservices Architecture
@@ -456,7 +458,9 @@ mvn flyway:clean
 - ✅ **Architecture & Platform**: Spring Boot services with common libraries
 - ✅ **Multi-Tenant Support**: Row-level isolation with `tenant_id`
 - ✅ **Authentication & Security**: JWT-based auth with Spring Security
+- ✅ **Password Reset System**: Token-based reset with email notifications and rate limiting
 - ✅ **Database Foundation**: MySQL with Flyway migrations
+- ✅ **Email Service**: Thymeleaf-based HTML email templates with SMTP integration
 - 🔄 **Item & Catalog Management**: CRUD operations with validation
 - 🔄 **Basic Inventory Control**: Ledger-based stock movements
 

@@ -200,8 +200,8 @@ Dashboard (Overview)
 ## Core Technologies
 
 ### Frontend Framework
-- **React 18.x** with TypeScript for type safety and developer experience
-- **Next.js 14.x** for SSR/SSG, API routes, and optimized performance
+- **React 19.x** with TypeScript for type safety and developer experience
+- **Next.js 15.x** for SSR/SSG, API routes, and optimized performance
 - **Tailwind CSS 3.x** for utility-first styling and consistent design system
 
 ### State Management & Data Fetching
@@ -373,8 +373,11 @@ Add to `package.json`:
 ### Component Organization
 ```
 src/
-├── app/                    # Next.js 14 app directory
+├── app/                    # Next.js 15 app directory
 │   ├── (auth)/            # Route groups for auth pages
+│   │   ├── login/         # Login page
+│   │   ├── forgot-password/  # Password reset request page
+│   │   └── reset-password/   # Password reset completion page
 │   ├── dashboard/         # Main application routes
 │   ├── globals.css        # Global styles and Tailwind imports
 │   └── layout.tsx         # Root layout
@@ -491,7 +494,8 @@ NEXT_PUBLIC_SESSION_TIMEOUT=28800000
 3. **Automatic Refresh**: Token renewal via `/auth/refresh` endpoint with axios interceptors
 4. **Role-Based Rendering**: UI components based on user permissions and roles
 5. **Session Management**: Active session tracking with logout from `/auth/sessions`
-6. **Account Security**: Password change, account lockout, and failed attempt handling
+6. **Password Reset System**: Complete self-service reset flow with email verification
+7. **Account Security**: Password change, account lockout, and failed attempt handling
 
 ### Error Handling Strategy
 - **Global Error Boundary**: Catches unexpected React errors
