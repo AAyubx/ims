@@ -58,6 +58,7 @@ _Last updated: 2025-08-31 12:21 UTC_
 - Field‑level permissions (e.g., cost vs retail visibility).
 - Data protection (PII for suppliers/customers): encryption in transit and at rest.
 - Email service: Professional account creation notifications, password management emails.
+- **Mandatory password change on first login**: Interactive modal with strength validation and policy enforcement.
 - Compliance: VAT/GST recordkeeping, SOX‑friendly audit, GDPR/CCPA data subject tools.
 
 ## 11) Observability & Reliability
@@ -81,6 +82,7 @@ _Last updated: 2025-08-31 12:21 UTC_
 - Responsive admin UI (Next.js/React) with role‑based menus and real-time validation.
 - Task-driven screens: receive, count, transfer, adjust, label print.
 - Professional email templates: welcome emails, password notifications with company branding.
+- **Interactive password change experience**: Modal with password strength indicator, clear requirements, and user-friendly validation.
 - Inline validations; offline‑capable mobile apps.
 
 ## 15) Performance & Scalability Targets

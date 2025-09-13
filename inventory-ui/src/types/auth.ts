@@ -12,6 +12,8 @@ export interface LoginResponse {
     expiresIn: number;
     user: UserInfo;
     sessionId: string;
+    mustChangePassword?: boolean;
+    passwordExpiresAt?: string;
   };
 }
 
@@ -55,6 +57,13 @@ export interface ResetPasswordRequest {
   token: string;
   newPassword: string;
   confirmPassword: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+  logoutAllSessions?: boolean;
 }
 
 export interface ApiResponse<T> {

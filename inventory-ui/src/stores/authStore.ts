@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { LoginCredentials, UserInfo, AuthError } from '@/types/auth';
+import { LoginCredentials, UserInfo, AuthError, ChangePasswordRequest } from '@/types/auth';
 import { AuthAPI } from '@/lib/api';
 
 interface AuthState {
@@ -13,12 +13,17 @@ interface AuthState {
   token: string | null;
   refreshToken: string | null;
   
+  // Password change requirements
+  mustChangePassword: boolean;
+  passwordExpiresAt: string | null;
+  
   // Error handling
   error: AuthError | null;
   
   // Actions
-  login: (credentials: LoginCredentials) => Promise<void>;
+  login: (credentials: LoginCredentials) => Promise<{ mustChangePassword: boolean }>;
   logout: () => Promise<void>;
+  changePassword: (request: ChangePasswordRequest) => Promise<void>;
   loadCurrentUser: () => Promise<void>;
   clearError: () => void;
   clearAuth: () => void;
@@ -33,6 +38,8 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       token: null,
       refreshToken: null,
+      mustChangePassword: false,
+      passwordExpiresAt: null,
       error: null,
 
       // Login action
@@ -43,7 +50,7 @@ export const useAuthStore = create<AuthState>()(
           const response = await AuthAPI.login(credentials);
           
           if (response.success) {
-            const { accessToken, refreshToken, user } = response.data;
+            const { accessToken, refreshToken, user, mustChangePassword, passwordExpiresAt } = response.data;
             
             // Store tokens in localStorage
             localStorage.setItem('inventory_access_token', accessToken);
@@ -54,9 +61,13 @@ export const useAuthStore = create<AuthState>()(
               token: accessToken,
               refreshToken: refreshToken,
               user: user,
+              mustChangePassword: mustChangePassword || false,
+              passwordExpiresAt: passwordExpiresAt || null,
               isLoading: false,
               error: null,
             });
+            
+            return { mustChangePassword: mustChangePassword || false };
           } else {
             throw new Error('Login failed');
           }
@@ -71,6 +82,40 @@ export const useAuthStore = create<AuthState>()(
             token: null,
             refreshToken: null,
             user: null,
+            mustChangePassword: false,
+            passwordExpiresAt: null,
+            isLoading: false,
+            error: authError,
+          });
+          
+          throw authError;
+        }
+      },
+
+      // Change password action
+      changePassword: async (request: ChangePasswordRequest) => {
+        set({ isLoading: true, error: null });
+        
+        try {
+          const response = await AuthAPI.changePassword(request);
+          
+          if (response.success) {
+            // Password changed successfully, clear mustChangePassword flag
+            set({
+              mustChangePassword: false,
+              isLoading: false,
+              error: null,
+            });
+          } else {
+            throw new Error('Password change failed');
+          }
+        } catch (error: any) {
+          const authError: AuthError = {
+            code: error.response?.data?.error?.code || 'CHANGE_PASSWORD_FAILED',
+            message: error.response?.data?.error?.message || 'Failed to change password',
+          };
+          
+          set({
             isLoading: false,
             error: authError,
           });
@@ -98,6 +143,8 @@ export const useAuthStore = create<AuthState>()(
             token: null,
             refreshToken: null,
             user: null,
+            mustChangePassword: false,
+            passwordExpiresAt: null,
             isLoading: false,
             error: null,
           });
@@ -151,6 +198,8 @@ export const useAuthStore = create<AuthState>()(
           token: null,
           refreshToken: null,
           user: null,
+          mustChangePassword: false,
+          passwordExpiresAt: null,
           isLoading: false,
           error: null,
         });
@@ -163,6 +212,8 @@ export const useAuthStore = create<AuthState>()(
         user: state.user,
         token: state.token,
         refreshToken: state.refreshToken,
+        mustChangePassword: state.mustChangePassword,
+        passwordExpiresAt: state.passwordExpiresAt,
       }),
     }
   )

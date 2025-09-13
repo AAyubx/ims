@@ -83,6 +83,15 @@ This module handles all administrative user management functions and user authen
   - Password expiry notifications
   - Email confirmation notifications
 
+- **Mandatory Password Change on First Login**
+  - New users are required to change password on first login
+  - Interactive password change modal with validation
+  - Real-time password strength indicator
+  - Prevents access to application until password is changed
+  - Comprehensive password policy enforcement
+  - User-friendly UI with clear requirements display
+  - Automatic session termination after password change
+
 ### 5. Account Security Features
 
 - **Login Attempt Monitoring**
@@ -121,7 +130,20 @@ sequenceDiagram
     A->>A: Generate JWT token
     A->>DB: Create user session
     A->>Cache: Cache user permissions
-    A->>C: Return JWT + user info
+    A->>C: Return JWT + user info + mustChangePassword flag
+    
+    alt mustChangePassword = true
+        C->>C: Show password change modal
+        C->>A: POST /auth/change-password {currentPassword, newPassword, confirmPassword}
+        A->>DB: Validate current password
+        A->>DB: Check password policy & history
+        A->>DB: Update password hash & clear mustChangePassword flag
+        A->>DB: Terminate all user sessions (force re-login)
+        A->>C: Password changed successfully
+        C->>C: Redirect to dashboard
+    else mustChangePassword = false
+        C->>C: Redirect to dashboard
+    end
 ```
 
 ### Token Validation Flow

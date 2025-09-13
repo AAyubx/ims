@@ -16,6 +16,7 @@ A modern, multi-tenant inventory management system built with Spring Boot, featu
 
 ### Security Features
 - Password policy enforcement (complexity, expiry, history)
+- **Mandatory password change on first login** with interactive modal and validation
 - Account lockout after failed login attempts with manual unlock capability
 - Advanced session management and timeout controls
 - Individual and bulk session termination
