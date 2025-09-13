@@ -57,6 +57,7 @@ _Last updated: 2025-08-31 12:21 UTC_
 - RBAC with least privilege; SSO (OIDC/SAML) for backoffice.
 - Field‑level permissions (e.g., cost vs retail visibility).
 - Data protection (PII for suppliers/customers): encryption in transit and at rest.
+- Email service: Professional account creation notifications, password management emails.
 - Compliance: VAT/GST recordkeeping, SOX‑friendly audit, GDPR/CCPA data subject tools.
 
 ## 11) Observability & Reliability
@@ -77,8 +78,9 @@ _Last updated: 2025-08-31 12:21 UTC_
 - Plugin/extension SDK with domain events and policy hooks.
 
 ## 14) User Experience (Web & Mobile)
-- Responsive admin UI (React/Angular/Vaadin) with role‑based menus.
+- Responsive admin UI (Next.js/React) with role‑based menus and real-time validation.
 - Task-driven screens: receive, count, transfer, adjust, label print.
+- Professional email templates: welcome emails, password notifications with company branding.
 - Inline validations; offline‑capable mobile apps.
 
 ## 15) Performance & Scalability Targets

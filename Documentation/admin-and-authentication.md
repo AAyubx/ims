@@ -501,6 +501,73 @@ public class SecurityConfig {
 - Implement data masking for logs
 - GDPR compliance for user data
 
+## Email Service Integration
+
+### Account Creation Notifications
+When an admin creates a new user account, the system automatically sends a professional welcome email containing:
+
+**Email Content:**
+- **Account Details**: Employee code, email, assigned roles, account status
+- **Login Credentials**: Temporary password (if auto-generated) or setup instructions
+- **Security Information**: Password policy requirements and best practices
+- **Next Steps**: Clear guidance on first login and account setup
+- **Support Contact**: Help and technical assistance information
+
+**Email Features:**
+- **Professional Design**: Responsive HTML template with company branding
+- **Conditional Content**: Different content based on password generation method
+- **Security Focus**: Emphasizes password security and best practices
+- **Multi-format Support**: HTML with plain text fallback
+
+### Email Types
+
+#### Welcome Email (Account Creation)
+```java
+@Service
+public class EmailService {
+    public void sendAccountCreationEmail(String email, String displayName, 
+                                       String employeeCode, List<String> roles, 
+                                       String temporaryPassword) {
+        // Sends professional welcome email with account details
+        // Includes temporary password if auto-generated
+        // Provides security guidance and next steps
+    }
+}
+```
+
+#### Password Management Emails
+- **Password Reset**: Secure reset with expiring tokens
+- **Password Changed**: Confirmation notifications
+- **Admin Password Reset**: When admin resets user password
+
+### Configuration
+```yaml
+spring:
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_AUTH:false}
+          starttls:
+            enable: ${MAIL_STARTTLS:false}
+
+app:
+  mail:
+    from: ${APP_MAIL_FROM:noreply@inventory.com}
+    from-name: ${APP_MAIL_FROM_NAME:Inventory Management System}
+  base-url: ${APP_BASE_URL:http://localhost:3000}
+  company:
+    name: ${APP_COMPANY_NAME:Your Company}
+```
+
+### Development & Testing
+- **MailHog Integration**: Local SMTP server for development testing
+- **Email Preview**: View sent emails at http://localhost:8025
+- **Template Testing**: Verify email rendering across different clients
+- **Error Handling**: Email failures don't prevent user creation (logged for monitoring)
+
 ### Audit Trail
 - Log all user management operations
 - Track who performed each action
