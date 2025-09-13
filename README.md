@@ -6,17 +6,21 @@ A modern, multi-tenant inventory management system built with Spring Boot, featu
 
 ### Core Functionality
 - **Multi-tenant Architecture**: Complete tenant isolation and data security
-- **User Management**: Admin user creation, role assignment, and lifecycle management
+- **Comprehensive User Management**: Full CRUD operations, advanced filtering, bulk actions
+- **Role-Based Access Control**: Admin user creation, role assignment, and lifecycle management
+- **Session Management**: Active session tracking, individual/bulk session termination
 - **Advanced Authentication**: JWT-based auth with password policies and session management
-- **Security Controls**: Failed login tracking, account lockout, and password history
+- **Security Controls**: Failed login tracking, account lockout, password reset, and password history
 - **Audit Logging**: Comprehensive tracking of all user actions and system changes
 
 ### Security Features
 - Password policy enforcement (complexity, expiry, history)
-- Account lockout after failed login attempts
-- Session management and timeout controls
-- Role-based access control (RBAC)
-- Comprehensive audit trail
+- Account lockout after failed login attempts with manual unlock capability
+- Advanced session management and timeout controls
+- Individual and bulk session termination
+- Role-based access control (RBAC) with dynamic role assignment
+- Comprehensive audit trail with detailed user action tracking
+- Secure user activation/deactivation workflow
 
 ### Technical Stack
 - **Backend**: Spring Boot 3.2, Spring Security 6, Spring Data JPA
@@ -160,12 +164,56 @@ npm run test:watch
 - `POST /api/auth/forgot-password` - Password reset request
 
 ### Admin User Management
-- `GET /api/admin/users` - List users
-- `POST /api/admin/users` - Create user
-- `PUT /api/admin/users/{id}` - Update user
-- `DELETE /api/admin/users/{id}` - Deactivate user
+- `GET /api/admin/users` - List users with filtering and pagination
+- `GET /api/admin/users/{id}` - Get user details by ID
+- `POST /api/admin/users` - Create new user
+- `PUT /api/admin/users/{id}` - Update user information
+- `DELETE /api/admin/users/{id}` - Deactivate user (soft delete)
+- `POST /api/admin/users/{id}/activate` - Activate user account
+- `POST /api/admin/users/{id}/reset-password` - Reset user password
+- `POST /api/admin/users/{id}/unlock` - Unlock locked user account
+- `GET /api/admin/users/{id}/sessions` - Get active user sessions
+- `DELETE /api/admin/users/{id}/sessions/{sessionId}` - Terminate specific session
+- `DELETE /api/admin/users/{id}/sessions` - Terminate all user sessions
+- `GET /api/admin/users/roles` - Get available roles
+- `POST /api/admin/users/bulk-actions` - Perform bulk operations
 
 Full API documentation available at `/swagger-ui.html`.
+
+### Admin User Management Features
+
+The comprehensive admin user management system includes:
+
+**User Lifecycle Management:**
+- Create users with custom or auto-generated passwords
+- Update user information and role assignments  
+- Activate/deactivate user accounts with proper audit trails
+- Bulk operations for efficient multi-user management
+
+**Advanced Filtering & Search:**
+- Search by email, name, or employee code
+- Filter by status (ACTIVE/INACTIVE), first name, email
+- Paginated results with customizable sorting
+- Real-time user status tracking
+
+**Security & Session Control:**
+- View and manage active user sessions
+- Terminate individual or all sessions for any user
+- Password reset functionality with temporary passwords
+- Account unlock capabilities for locked accounts
+- Role-based permissions with dynamic role assignment
+
+**Bulk Operations:**
+- Bulk activate/deactivate multiple users
+- Bulk password reset with generated temporary passwords
+- Efficient batch processing with detailed response feedback
+
+**Database Schema Updates:**
+- New `password_reset_token` table for secure password reset functionality
+- Token expiry tracking with configurable timeout (24 hours default)  
+- Rate limiting support (3 requests per hour per email)
+- IP address and user agent tracking for security audit
+- Multi-tenant isolation with proper foreign key constraints
 
 ## 🐳 Docker Services
 
