@@ -19,6 +19,7 @@ interface AuthState {
   // Actions
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => Promise<void>;
+  loadCurrentUser: () => Promise<void>;
   clearError: () => void;
   clearAuth: () => void;
 }
@@ -105,6 +106,40 @@ export const useAuthStore = create<AuthState>()(
 
       // Clear error
       clearError: () => set({ error: null }),
+
+      // Load current user
+      loadCurrentUser: async () => {
+        set({ isLoading: true, error: null });
+        
+        try {
+          const response = await AuthAPI.getCurrentUser();
+          
+          if (response.success && response.data) {
+            set({
+              user: response.data,
+              isLoading: false,
+              error: null,
+            });
+          } else {
+            throw new Error('Failed to load user data');
+          }
+        } catch (error: any) {
+          console.error('Load current user failed:', error);
+          
+          // If loading user fails, token might be invalid
+          const authError: AuthError = {
+            code: 'USER_LOAD_FAILED',
+            message: 'Failed to load user information',
+          };
+          
+          set({
+            isLoading: false,
+            error: authError,
+          });
+          
+          throw authError;
+        }
+      },
 
       // Clear auth state
       clearAuth: () => {

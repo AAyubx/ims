@@ -120,6 +120,38 @@ public class EmailService {
         }
     }
 
+    public void sendAdminPasswordResetEmail(String toEmail, String displayName, String resetToken, LocalDateTime expiresAt) {
+        try {
+            String resetUrl = baseUrl + "/reset-password?token=" + resetToken;
+            
+            Context context = new Context();
+            context.setVariable("displayName", displayName != null ? displayName : "User");
+            context.setVariable("resetUrl", resetUrl);
+            context.setVariable("expiresAt", expiresAt.format(DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm")));
+            context.setVariable("companyName", companyName);
+            context.setVariable("supportEmail", fromEmail);
+            context.setVariable("isAdminInitiated", true);
+            
+            String htmlBody = templateEngine.process("email/admin-password-reset", context);
+            
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            
+            helper.setFrom(fromEmail, fromName);
+            helper.setTo(toEmail);
+            helper.setSubject("Password Reset Required - " + companyName);
+            helper.setText(htmlBody, true);
+            
+            mailSender.send(message);
+            
+            log.info("Admin-initiated password reset email sent successfully to: {}", toEmail);
+            
+        } catch (Exception e) {
+            log.error("Failed to send admin password reset email to: {} - {}", toEmail, e.getMessage());
+            throw new RuntimeException("Failed to send admin password reset email", e);
+        }
+    }
+
     public void sendPasswordChangedNotificationPlainText(String toEmail, String displayName, String ipAddress, String userAgent) {
         try {
             String subject = "Password Changed - " + companyName;
