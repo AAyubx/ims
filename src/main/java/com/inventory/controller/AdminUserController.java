@@ -1,6 +1,7 @@
 package com.inventory.controller;
 
 import com.inventory.dto.*;
+import com.inventory.entity.UserAccount;
 import com.inventory.service.AdminUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -31,7 +32,7 @@ public class AdminUserController {
     private final AdminUserService adminUserService;
 
     @GetMapping
-    @Operation(summary = "List all users", description = "Get paginated list of all users in the tenant")
+    @Operation(summary = "List all users", description = "Get paginated list of all users in the tenant with filtering")
     public ResponseEntity<ApiResponse<Page<UserResponseDto>>> getAllUsers(
             @Parameter(description = "Page number (0-based)")
             @RequestParam(defaultValue = "0") int page,
@@ -46,19 +47,24 @@ public class AdminUserController {
             @RequestParam(defaultValue = "desc") String sortDir,
             
             @Parameter(description = "Search term (email, name, or employee code)")
-            @RequestParam(required = false) String search) {
+            @RequestParam(required = false) String search,
+            
+            @Parameter(description = "Filter by first name")
+            @RequestParam(required = false) String firstName,
+            
+            @Parameter(description = "Filter by email address")
+            @RequestParam(required = false) String emailAddress,
+            
+            @Parameter(description = "Filter by status (ACTIVE/INACTIVE)")
+            @RequestParam(required = false) UserAccount.UserStatus status) {
         
         try {
             Sort sort = Sort.by(sortDir.equalsIgnoreCase("desc") ? 
                                Sort.Direction.DESC : Sort.Direction.ASC, sortBy);
             Pageable pageable = PageRequest.of(page, size, sort);
             
-            Page<UserResponseDto> users;
-            if (search != null && !search.trim().isEmpty()) {
-                users = adminUserService.searchUsers(search.trim(), pageable);
-            } else {
-                users = adminUserService.getAllUsers(pageable);
-            }
+            Page<UserResponseDto> users = adminUserService.getFilteredUsers(
+                    search, firstName, emailAddress, status, pageable);
             
             return ResponseEntity.ok(ApiResponse.success(users));
             
@@ -155,6 +161,26 @@ public class AdminUserController {
             log.error("Failed to deactivate user ID: {} - {}", id, e.getMessage());
             return ResponseEntity.status(500)
                     .body(ApiResponse.error("User deactivation failed", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/{id}/activate")
+    @Operation(summary = "Activate user", description = "Activate a user account")
+    public ResponseEntity<ApiResponse<Void>> activateUser(
+            @Parameter(description = "User ID")
+            @PathVariable Long id) {
+        
+        try {
+            adminUserService.activateUser(id);
+            return ResponseEntity.ok(ApiResponse.success("User activated successfully", null));
+            
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("User activation failed", e.getMessage()));
+        } catch (Exception e) {
+            log.error("Failed to activate user ID: {} - {}", id, e.getMessage());
+            return ResponseEntity.status(500)
+                    .body(ApiResponse.error("User activation failed", e.getMessage()));
         }
     }
 
@@ -264,6 +290,78 @@ public class AdminUserController {
             log.error("Failed to terminate all sessions for user ID: {} - {}", id, e.getMessage());
             return ResponseEntity.status(500)
                     .body(ApiResponse.error("Session termination failed", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/roles")
+    @Operation(summary = "Get all available roles", description = "Get list of all available roles for user assignment")
+    public ResponseEntity<ApiResponse<List<UserResponseDto.RoleDto>>> getAllRoles() {
+        try {
+            List<UserResponseDto.RoleDto> roles = adminUserService.getAllRoles();
+            return ResponseEntity.ok(ApiResponse.success(roles));
+            
+        } catch (Exception e) {
+            log.error("Failed to retrieve roles - {}", e.getMessage());
+            return ResponseEntity.status(500)
+                    .body(ApiResponse.error("Failed to retrieve roles", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/bulk-actions")
+    @Operation(summary = "Perform bulk actions on users", description = "Execute bulk operations on multiple users")
+    public ResponseEntity<ApiResponse<BulkActionResponse>> performBulkActions(
+            @Valid @RequestBody BulkActionRequest request) {
+        
+        try {
+            BulkActionResponse response = adminUserService.performBulkActions(request);
+            return ResponseEntity.ok(ApiResponse.success("Bulk action completed", response));
+            
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Bulk action failed", e.getMessage()));
+        } catch (Exception e) {
+            log.error("Failed to perform bulk action - {}", e.getMessage());
+            return ResponseEntity.status(500)
+                    .body(ApiResponse.error("Bulk action failed", e.getMessage()));
+        }
+    }
+
+    // Request/Response DTOs specific to this controller
+    @lombok.Data
+    @lombok.NoArgsConstructor
+    @lombok.AllArgsConstructor
+    public static class BulkActionRequest {
+        @javax.validation.constraints.NotNull
+        @javax.validation.constraints.NotEmpty
+        private List<Long> userIds;
+        
+        @javax.validation.constraints.NotNull
+        private BulkAction action;
+        
+        public enum BulkAction {
+            ACTIVATE, DEACTIVATE, RESET_PASSWORD
+        }
+    }
+    
+    @lombok.Data
+    @lombok.Builder
+    @lombok.NoArgsConstructor
+    @lombok.AllArgsConstructor
+    public static class BulkActionResponse {
+        private int totalRequested;
+        private int successful;
+        private int failed;
+        private List<String> errors;
+        private List<PasswordResetInfo> passwordResets;
+        
+        @lombok.Data
+        @lombok.Builder
+        @lombok.NoArgsConstructor
+        @lombok.AllArgsConstructor
+        public static class PasswordResetInfo {
+            private Long userId;
+            private String email;
+            private String temporaryPassword;
         }
     }
 

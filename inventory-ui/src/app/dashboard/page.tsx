@@ -3,19 +3,32 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, User, Users, Settings, Shield } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
+import { AuthAPI } from '@/lib/api';
 
 export default function DashboardPage() {
-  const { isAuthenticated, user, logout, isLoading } = useAuthStore();
+  const { isAuthenticated, user, logout, loadCurrentUser, isLoading } = useAuthStore();
   const router = useRouter();
 
-  // Redirect to login if not authenticated
+  // Redirect to login if not authenticated and load user data
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.push('/login');
+    } else if (isAuthenticated && !user) {
+      // If authenticated but no user data, try to load current user
+      const loadUser = async () => {
+        try {
+          await loadCurrentUser();
+        } catch (error) {
+          console.error('Failed to load current user:', error);
+          // If user loading fails, probably token is invalid
+          router.push('/login');
+        }
+      };
+      loadUser();
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, user, router, loadCurrentUser]);
 
   const handleLogout = async () => {
     try {
@@ -104,6 +117,66 @@ export default function DashboardPage() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        {/* Debug Info - Remove after fixing */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
+            <h3 className="font-medium text-yellow-800">Debug Info:</h3>
+            <p className="text-sm text-yellow-700">User: {JSON.stringify(user?.roles, null, 2)}</p>
+            <p className="text-sm text-yellow-700">Has Admin: {user?.roles?.some(role => role.code === 'ADMIN') ? 'Yes' : 'No'}</p>
+          </div>
+        )}
+        
+        {/* Admin Navigation - Only show for admin users */}
+        {user?.roles?.some(role => role.code === 'ADMIN') && (
+          <div className="mb-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center mb-3">
+                <Shield className="h-5 w-5 text-blue-600 mr-2" />
+                <h3 className="text-lg font-medium text-blue-900">
+                  System Administration
+                </h3>
+              </div>
+              <p className="text-blue-700 text-sm mb-4">
+                Manage system users, roles, and settings
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <button
+                  onClick={() => router.push('/admin/users')}
+                  className="flex items-center p-4 bg-white border border-blue-200 rounded-md hover:border-blue-300 hover:bg-blue-50 transition-colors duration-200"
+                >
+                  <Users className="h-6 w-6 text-blue-600 mr-3" />
+                  <div className="text-left">
+                    <div className="font-medium text-blue-900">User Management</div>
+                    <div className="text-sm text-blue-700">Manage users, roles, and permissions</div>
+                  </div>
+                </button>
+                
+                <button
+                  onClick={() => toast.info('Feature coming soon')}
+                  className="flex items-center p-4 bg-white border border-blue-200 rounded-md hover:border-blue-300 hover:bg-blue-50 transition-colors duration-200"
+                >
+                  <Settings className="h-6 w-6 text-blue-600 mr-3" />
+                  <div className="text-left">
+                    <div className="font-medium text-blue-900">System Settings</div>
+                    <div className="text-sm text-blue-700">Configure system parameters</div>
+                  </div>
+                </button>
+                
+                <button
+                  onClick={() => toast.info('Feature coming soon')}
+                  className="flex items-center p-4 bg-white border border-blue-200 rounded-md hover:border-blue-300 hover:bg-blue-50 transition-colors duration-200"
+                >
+                  <Shield className="h-6 w-6 text-blue-600 mr-3" />
+                  <div className="text-left">
+                    <div className="font-medium text-blue-900">Security Audit</div>
+                    <div className="text-sm text-blue-700">View security logs and events</div>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="px-6 py-8">
             <h2 className="text-lg font-medium text-gray-900 mb-4">

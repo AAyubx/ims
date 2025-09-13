@@ -50,4 +50,21 @@ public interface UserAccountRepository extends JpaRepository<UserAccount, Long> 
     Page<UserAccount> findByTenantIdAndStatus(@Param("tenantId") Long tenantId,
                                               @Param("status") UserAccount.UserStatus status,
                                               Pageable pageable);
+
+    @Query("SELECT u FROM UserAccount u WHERE u.tenant.id = :tenantId " +
+           "AND (:search IS NULL OR :search = '' OR " +
+           "     LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "     LOWER(u.displayName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "     LOWER(u.employeeCode) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+           "AND (:firstName IS NULL OR :firstName = '' OR " +
+           "     LOWER(u.displayName) LIKE LOWER(CONCAT('%', :firstName, '%'))) " +
+           "AND (:emailAddress IS NULL OR :emailAddress = '' OR " +
+           "     LOWER(u.email) LIKE LOWER(CONCAT('%', :emailAddress, '%'))) " +
+           "AND (:status IS NULL OR u.status = :status)")
+    Page<UserAccount> findByFilters(@Param("tenantId") Long tenantId,
+                                   @Param("search") String search,
+                                   @Param("firstName") String firstName,
+                                   @Param("emailAddress") String emailAddress,
+                                   @Param("status") UserAccount.UserStatus status,
+                                   Pageable pageable);
 }

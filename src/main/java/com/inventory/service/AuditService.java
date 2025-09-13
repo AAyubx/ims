@@ -142,6 +142,49 @@ public class AuditService {
 
     @Async
     @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void logUserAction(String action, Long adminUserId, String description, String entityId) {
+        try {
+            AuditLog auditLog = new AuditLog();
+            auditLog.setActionType(AuditLog.ActionType.ADMIN_ACTION);
+            auditLog.setEntityType("USER_MANAGEMENT");
+            auditLog.setEntityId(entityId);
+            
+            UserAccount user = new UserAccount();
+            user.setId(adminUserId);
+            auditLog.setUser(user);
+            
+            // Get tenant from security context
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.getPrincipal() instanceof UserPrincipal) {
+                UserPrincipal userPrincipal = (UserPrincipal) auth.getPrincipal();
+                Tenant tenant = new Tenant();
+                tenant.setId(userPrincipal.getTenantId());
+                auditLog.setTenant(tenant);
+            }
+            
+            // Add action details
+            Map<String, Object> actionData = Map.of(
+                "action", action,
+                "description", description,
+                "adminUserId", adminUserId
+            );
+            
+            auditLog.setNewValues(objectMapper.writeValueAsString(actionData));
+            
+            // Get request information
+            setRequestInfo(auditLog);
+            
+            auditLogRepository.save(auditLog);
+            
+            log.debug("Audit log created for admin action: {} by user {}", action, adminUserId);
+            
+        } catch (Exception e) {
+            log.error("Failed to create audit log for admin action - {}", e.getMessage());
+        }
+    }
+
+    @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void logAdminAction(Long adminUserId, Long targetUserId, AuditLog.ActionType actionType, 
                               String description, Object oldValues, Object newValues) {
         try {
