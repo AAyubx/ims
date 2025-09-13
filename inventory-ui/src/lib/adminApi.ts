@@ -8,6 +8,7 @@ import {
   UserSessionDto,
   UserFilters,
   PaginatedResponse,
+  RoleDto,
 } from '@/types/admin';
 import { ApiResponse } from '@/types/auth';
 
@@ -42,7 +43,18 @@ export class AdminUserAPI {
   }
 
   static async createUser(request: CreateUserRequest): Promise<ApiResponse<any>> {
-    const response = await apiClient.post('/admin/users', request);
+    // Transform frontend format to backend format
+    const backendRequest = {
+      employeeCode: request.employeeCode,
+      email: request.email,
+      displayName: request.displayName,
+      roleIds: request.roleIds, // Backend expects Set<Long> but axios will serialize array correctly
+      initialPassword: request.initialPassword || undefined,
+      mustChangePassword: request.mustChangePassword ?? true
+    };
+    
+    console.log('Sending create user request:', backendRequest);
+    const response = await apiClient.post('/admin/users', backendRequest);
     return response.data;
   }
 
@@ -91,8 +103,8 @@ export class AdminUserAPI {
     return response.data;
   }
 
-  static async getRoles(): Promise<ApiResponse<any[]>> {
-    const response = await apiClient.get('/admin/roles');
+  static async getRoles(): Promise<ApiResponse<RoleDto[]>> {
+    const response = await apiClient.get('/admin/users/roles');
     return response.data;
   }
 }

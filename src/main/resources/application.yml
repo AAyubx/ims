@@ -50,16 +50,16 @@ spring:
           max-wait: -1ms
 
   mail:
-    host: localhost
-    port: 587
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
     username: ${MAIL_USERNAME:}
     password: ${MAIL_PASSWORD:}
     properties:
       mail:
         smtp:
-          auth: true
+          auth: ${MAIL_AUTH:false}
           starttls:
-            enable: true
+            enable: ${MAIL_STARTTLS:false}
 
   security:
     require-ssl: false

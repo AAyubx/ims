@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Your New Account</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .email-container {
+            background: white;
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #0066CC;
+            margin-bottom: 10px;
+        }
+        .welcome-badge {
+            background: linear-gradient(135deg, #0066CC, #0052A3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #0066CC;
+            color: white;
+            padding: 14px 28px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            margin: 20px 0;
+        }
+        .button:hover {
+            background-color: #0052A3;
+        }
+        .account-details {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: 500;
+            color: #495057;
+        }
+        .detail-value {
+            color: #0066CC;
+            font-weight: 500;
+        }
+        .password-info {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #856404;
+        }
+        .security-tips {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #0c5460;
+        }
+        .next-steps {
+            background-color: #f8f9fa;
+            border-left: 4px solid #28a745;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            font-size: 14px;
+            color: #6c757d;
+            text-align: center;
+        }
+        .checklist {
+            list-style: none;
+            padding-left: 0;
+        }
+        .checklist li {
+            padding: 8px 0;
+            position: relative;
+            padding-left: 25px;
+        }
+        .checklist li:before {
+            content: "✅";
+            position: absolute;
+            left: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="logo" th:text="${companyName}">Inventory Management System</div>
+            <div class="welcome-badge">🎉 Welcome to the Team!</div>
+        </div>
+        
+        <p>Hello <strong th:text="${displayName}">User</strong>,</p>
+        
+        <p>Congratulations! Your account has been successfully created by an administrator. You now have access to the <span th:text="${companyName}">company</span> Inventory Management System.</p>
+        
+        <div class="account-details">
+            <h3 style="margin-top: 0; color: #0066CC;">📋 Your Account Details</h3>
+            <div class="detail-row">
+                <span class="detail-label">Email Address:</span>
+                <span class="detail-value" th:text="${email}">user@example.com</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Employee Code:</span>
+                <span class="detail-value" th:text="${employeeCode}">EMP001</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Role(s):</span>
+                <span class="detail-value" th:text="${roles}">Administrator</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Account Status:</span>
+                <span class="detail-value">Active</span>
+            </div>
+        </div>
+        
+        <!-- Show password info only if temporary password was generated -->
+        <div th:if="${hasTemporaryPassword}" class="password-info">
+            <strong>🔑 Temporary Password:</strong>
+            <p style="margin: 10px 0;">Your temporary password is: <code style="background: #f8f9fa; padding: 2px 6px; border-radius: 3px; font-weight: bold;" th:text="${temporaryPassword}">temp-password</code></p>
+            <p style="margin: 5px 0; font-size: 14px;"><strong>Important:</strong> You will be required to change this password on your first login for security reasons.</p>
+        </div>
+        
+        <!-- Show password change requirement if no temporary password -->
+        <div th:unless="${hasTemporaryPassword}" class="password-info">
+            <strong>🔑 Password Setup Required:</strong>
+            <p style="margin: 10px 0;">A password reset link has been sent to help you set up your account password securely.</p>
+        </div>
+        
+        <div class="next-steps">
+            <h3 style="margin-top: 0; color: #28a745;">🚀 Next Steps</h3>
+            <ul class="checklist">
+                <li>Log in to the system using the button below</li>
+                <li th:if="${hasTemporaryPassword}">Create a new secure password (required on first login)</li>
+                <li th:unless="${hasTemporaryPassword}">Check your email for password setup instructions</li>
+                <li>Explore your dashboard and available features</li>
+                <li>Contact your administrator if you have any questions</li>
+            </ul>
+        </div>
+        
+        <div style="text-align: center;">
+            <a th:href="${loginUrl}" class="button">🚪 Access Your Account</a>
+        </div>
+        
+        <div class="security-tips">
+            <strong>🔒 Security Best Practices:</strong>
+            <ul style="margin: 10px 0; padding-left: 20px; font-size: 14px;">
+                <li>Choose a strong password with at least 8 characters</li>
+                <li>Include uppercase, lowercase, numbers, and special characters</li>
+                <li>Never share your login credentials with others</li>
+                <li>Log out when finished, especially on shared computers</li>
+                <li>Report any suspicious activity to your administrator</li>
+            </ul>
+        </div>
+        
+        <div class="footer">
+            <p><strong>Need Help?</strong></p>
+            <p>If you have any questions about your new account or need technical assistance, please don't hesitate to contact us:</p>
+            <p>📧 Support Email: <a th:href="'mailto:' + ${supportEmail}" th:text="${supportEmail}">support email</a></p>
+            <p style="margin-top: 30px;">
+                Best regards,<br>
+                <strong>The <span th:text="${companyName}">Company</span> IT Team</strong>
+            </p>
+            <p style="font-size: 12px; color: #adb5bd; margin-top: 20px;">
+                This account was created on <span th:text="${createdAt}">creation date</span><br>
+                If you believe this email was sent to you by mistake, please contact support immediately.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

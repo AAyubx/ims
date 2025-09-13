@@ -15,6 +15,7 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -229,5 +230,129 @@ public class EmailService {
             companyName,
             fromEmail
         );
+    }
+    
+    public void sendAccountCreationEmail(String toEmail, String displayName, String employeeCode, 
+                                       List<String> roles, String temporaryPassword) {
+        try {
+            String loginUrl = baseUrl + "/login";
+            boolean hasTemporaryPassword = temporaryPassword != null && !temporaryPassword.trim().isEmpty();
+            
+            Context context = new Context();
+            context.setVariable("displayName", displayName != null ? displayName : "User");
+            context.setVariable("email", toEmail);
+            context.setVariable("employeeCode", employeeCode != null ? employeeCode : "N/A");
+            context.setVariable("roles", String.join(", ", roles != null ? roles : List.of("User")));
+            context.setVariable("hasTemporaryPassword", hasTemporaryPassword);
+            context.setVariable("temporaryPassword", hasTemporaryPassword ? temporaryPassword : "");
+            context.setVariable("loginUrl", loginUrl);
+            context.setVariable("createdAt", LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm")));
+            context.setVariable("companyName", companyName);
+            context.setVariable("supportEmail", fromEmail);
+            
+            String htmlBody = templateEngine.process("email/account-created", context);
+            
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            
+            helper.setFrom(fromEmail, fromName);
+            helper.setTo(toEmail);
+            helper.setSubject("Welcome! Your Account Has Been Created - " + companyName);
+            helper.setText(htmlBody, true);
+            
+            mailSender.send(message);
+            
+            log.info("Account creation email sent successfully to: {}", toEmail);
+            
+        } catch (Exception e) {
+            log.error("Failed to send account creation email to: {} - {}", toEmail, e.getMessage());
+            // Don't throw exception for notification emails - they're not critical to user creation
+            // But we should log it for monitoring
+        }
+    }
+    
+    public void sendAccountCreationEmailPlainText(String toEmail, String displayName, String employeeCode, 
+                                                List<String> roles, String temporaryPassword) {
+        try {
+            String subject = "Welcome! Your Account Has Been Created - " + companyName;
+            String body = buildPlainTextAccountCreationEmail(toEmail, displayName, employeeCode, roles, temporaryPassword);
+            
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(toEmail);
+            message.setSubject(subject);
+            message.setText(body);
+            
+            mailSender.send(message);
+            
+            log.info("Account creation email (plain text) sent successfully to: {}", toEmail);
+            
+        } catch (Exception e) {
+            log.error("Failed to send account creation email (plain text) to: {} - {}", toEmail, e.getMessage());
+        }
+    }
+    
+    private String buildPlainTextAccountCreationEmail(String email, String displayName, String employeeCode, 
+                                                    List<String> roles, String temporaryPassword) {
+        boolean hasTemporaryPassword = temporaryPassword != null && !temporaryPassword.trim().isEmpty();
+        String rolesText = String.join(", ", roles != null ? roles : List.of("User"));
+        
+        StringBuilder body = new StringBuilder();
+        body.append(String.format("Hello %s,\n\n", displayName != null ? displayName : "User"));
+        body.append(String.format("Congratulations! Your account has been successfully created by an administrator for the %s Inventory Management System.\n\n", companyName));
+        
+        // Account Details
+        body.append("ACCOUNT DETAILS:\n");
+        body.append("================\n");
+        body.append(String.format("Email Address: %s\n", email));
+        body.append(String.format("Employee Code: %s\n", employeeCode != null ? employeeCode : "N/A"));
+        body.append(String.format("Role(s): %s\n", rolesText));
+        body.append("Account Status: Active\n\n");
+        
+        // Password Information
+        if (hasTemporaryPassword) {
+            body.append("TEMPORARY PASSWORD:\n");
+            body.append("==================\n");
+            body.append(String.format("Your temporary password is: %s\n", temporaryPassword));
+            body.append("IMPORTANT: You will be required to change this password on your first login for security reasons.\n\n");
+        } else {
+            body.append("PASSWORD SETUP:\n");
+            body.append("==============\n");
+            body.append("A password reset link has been sent to help you set up your account password securely.\n\n");
+        }
+        
+        // Next Steps
+        body.append("NEXT STEPS:\n");
+        body.append("===========\n");
+        body.append("1. Log in to the system at: ").append(baseUrl).append("/login\n");
+        if (hasTemporaryPassword) {
+            body.append("2. Create a new secure password (required on first login)\n");
+        } else {
+            body.append("2. Check your email for password setup instructions\n");
+        }
+        body.append("3. Explore your dashboard and available features\n");
+        body.append("4. Contact your administrator if you have any questions\n\n");
+        
+        // Security Tips
+        body.append("SECURITY BEST PRACTICES:\n");
+        body.append("========================\n");
+        body.append("- Choose a strong password with at least 8 characters\n");
+        body.append("- Include uppercase, lowercase, numbers, and special characters\n");
+        body.append("- Never share your login credentials with others\n");
+        body.append("- Log out when finished, especially on shared computers\n");
+        body.append("- Report any suspicious activity to your administrator\n\n");
+        
+        body.append("NEED HELP?\n");
+        body.append("==========\n");
+        body.append("If you have any questions about your new account or need technical assistance, please contact us at: ");
+        body.append(fromEmail).append("\n\n");
+        
+        body.append("Best regards,\n");
+        body.append(String.format("The %s IT Team\n\n", companyName));
+        
+        body.append(String.format("This account was created on %s\n", LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm"))));
+        body.append("If you believe this email was sent to you by mistake, please contact support immediately.\n");
+        
+        return body.toString();
     }
 }

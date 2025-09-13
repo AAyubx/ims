@@ -21,12 +21,12 @@ export interface RoleDto {
 }
 
 export interface CreateUserRequest {
+  employeeCode: string;
   email: string;
-  employeeCode?: string;
   displayName: string;
-  roleIds: number[];
+  roleIds: number[];  // Will be converted to Set<Long> in API call
   initialPassword?: string;
-  mustChangePassword: boolean;
+  mustChangePassword?: boolean;
 }
 
 export interface UpdateUserRequest {

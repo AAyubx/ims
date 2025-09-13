@@ -8,7 +8,8 @@ import {
   UserFilters, 
   BulkActionRequest, 
   CreateUserRequest, 
-  UpdateUserRequest 
+  UpdateUserRequest,
+  RoleDto
 } from '@/types/admin';
 import { useRouter } from 'next/navigation';
 
@@ -29,6 +30,31 @@ export default function AdminUsersPage() {
     sortDir: 'desc' as 'asc' | 'desc'
   });
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createFormData, setCreateFormData] = useState<CreateUserRequest>({
+    employeeCode: '',
+    email: '',
+    displayName: '',
+    roleIds: [],
+    initialPassword: '',
+    mustChangePassword: true
+  });
+  const [availableRoles, setAvailableRoles] = useState<RoleDto[]>([]);
+  const [formErrors, setFormErrors] = useState<{
+    employeeCode?: string;
+    email?: string;
+    displayName?: string;
+    roleIds?: string;
+    initialPassword?: string;
+    mustChangePassword?: string;
+  }>({});
+  const [formTouched, setFormTouched] = useState<{
+    employeeCode?: boolean;
+    email?: boolean;
+    displayName?: boolean;
+    roleIds?: boolean;
+    initialPassword?: boolean;
+    mustChangePassword?: boolean;
+  }>({});
   const [showConfirmModal, setShowConfirmModal] = useState<{
     show: boolean;
     action: string;
@@ -39,6 +65,109 @@ export default function AdminUsersPage() {
   useEffect(() => {
     loadUsers();
   }, [pagination.page, pagination.size, sortConfig, filters]);
+
+  useEffect(() => {
+    loadRoles();
+  }, []);
+
+  // Validation functions based on ui-plan specifications
+  const validateEmail = (email: string): string => {
+    if (!email) return 'Email is required';
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) return 'Invalid email address';
+    return '';
+  };
+
+  const validateEmployeeCode = (code: string): string => {
+    if (!code) return 'Employee code is required';
+    const codeRegex = /^[A-Z0-9]{3,32}$/;
+    if (!codeRegex.test(code)) return 'Employee code must be 3-32 alphanumeric characters (uppercase)';
+    return '';
+  };
+
+  const validateDisplayName = (name: string): string => {
+    if (!name) return 'Display name is required';
+    if (name.length < 2) return 'Display name must be at least 2 characters';
+    if (name.length > 50) return 'Display name must be less than 50 characters';
+    return '';
+  };
+
+  const validatePassword = (password: string): { error: string; strength: number } => {
+    if (!password) return { error: '', strength: 0 }; // Optional field
+    
+    const checks = {
+      minLength: password.length >= 8,
+      hasUppercase: /[A-Z]/.test(password),
+      hasLowercase: /[a-z]/.test(password),
+      hasNumbers: /\d/.test(password),
+      hasSpecialChars: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+    };
+    
+    const strength = Object.values(checks).filter(Boolean).length;
+    
+    let error = '';
+    if (password.length > 0 && password.length < 8) error = 'Password must be at least 8 characters';
+    else if (password.length > 0 && !checks.hasUppercase) error = 'Password must contain at least one uppercase letter';
+    else if (password.length > 0 && !checks.hasLowercase) error = 'Password must contain at least one lowercase letter';
+    else if (password.length > 0 && !checks.hasNumbers) error = 'Password must contain at least one number';
+    else if (password.length > 0 && !checks.hasSpecialChars) error = 'Password must contain at least one special character';
+    
+    return { error, strength };
+  };
+
+  const validateRoles = (roleIds: number[]): string => {
+    if (!roleIds || roleIds.length === 0) return 'Please select a role';
+    return '';
+  };
+
+  const validateField = (field: keyof CreateUserRequest, value: any) => {
+    let error = '';
+    
+    switch (field) {
+      case 'email':
+        error = validateEmail(value as string);
+        break;
+      case 'employeeCode':
+        error = validateEmployeeCode(value as string);
+        break;
+      case 'displayName':
+        error = validateDisplayName(value as string);
+        break;
+      case 'roleIds':
+        error = validateRoles(value as number[]);
+        break;
+      case 'initialPassword':
+        error = validatePassword(value as string).error;
+        break;
+    }
+    
+    setFormErrors(prev => ({ ...prev, [field]: error }));
+    return error === '';
+  };
+
+  const handleFieldChange = (field: keyof CreateUserRequest, value: any) => {
+    setCreateFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Real-time validation on change for immediate feedback
+    if (formTouched[field]) {
+      validateField(field, value);
+    }
+  };
+
+  const handleFieldBlur = (field: keyof CreateUserRequest) => {
+    setFormTouched(prev => ({ ...prev, [field]: true }));
+    validateField(field, createFormData[field]);
+  };
+
+  const isFormValid = () => {
+    const emailError = validateEmail(createFormData.email);
+    const codeError = validateEmployeeCode(createFormData.employeeCode);
+    const nameError = validateDisplayName(createFormData.displayName);
+    const roleError = validateRoles(createFormData.roleIds);
+    const passwordError = validatePassword(createFormData.initialPassword || '').error;
+    
+    return !emailError && !codeError && !nameError && !roleError && !passwordError;
+  };
 
   const loadUsers = async () => {
     try {
@@ -64,6 +193,57 @@ export default function AdminUsersPage() {
       console.error('Load users error:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadRoles = async () => {
+    try {
+      const response = await AdminUserAPI.getRoles();
+      if (response.success && response.data) {
+        setAvailableRoles(response.data);
+      }
+    } catch (error) {
+      console.error('Load roles error:', error);
+      toast.error('Failed to load roles');
+    }
+  };
+
+  const handleCreateUser = async () => {
+    try {
+      console.log('Creating user with data:', createFormData);
+      const response = await AdminUserAPI.createUser(createFormData);
+      console.log('Create user response:', response);
+      if (response.success) {
+        toast.success('User created successfully');
+        setShowCreateModal(false);
+        setCreateFormData({
+          employeeCode: '',
+          email: '',
+          displayName: '',
+          roleIds: [],
+          initialPassword: '',
+          mustChangePassword: true
+        });
+        setFormErrors({});
+        setFormTouched({});
+        loadUsers();
+      }
+    } catch (error: any) {
+      console.error('Create user error:', error);
+      
+      // Extract backend error message if available
+      const errorMessage = error?.response?.data?.message || 
+                          error?.response?.data?.error || 
+                          error?.message || 
+                          'Failed to create user';
+      
+      toast.error(errorMessage);
+      
+      // Log detailed error info for debugging
+      if (error?.response) {
+        console.error('Response status:', error.response.status);
+        console.error('Response data:', error.response.data);
+      }
     }
   };
 
@@ -207,9 +387,20 @@ export default function AdminUsersPage() {
 
   return (
     <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-        <p className="text-gray-600">Manage system users and their access</p>
+      <div className="mb-6 flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
+          <p className="text-gray-600">Manage system users and their access</p>
+        </div>
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center space-x-2"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          <span>Create User</span>
+        </button>
       </div>
 
       {/* Filters */}
@@ -462,6 +653,220 @@ export default function AdminUsersPage() {
           </div>
         )}
       </div>
+
+      {/* Create User Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-10 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Create New User</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Employee Code <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={createFormData.employeeCode}
+                    onChange={(e) => handleFieldChange('employeeCode', e.target.value)}
+                    onBlur={() => handleFieldBlur('employeeCode')}
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 text-gray-900 ${
+                      formErrors.employeeCode && formTouched.employeeCode
+                        ? 'border-red-500 focus:ring-red-500' 
+                        : formTouched.employeeCode && !formErrors.employeeCode
+                        ? 'border-green-500 focus:ring-green-500'
+                        : 'border-gray-300 focus:ring-blue-500'
+                    }`}
+                    placeholder="e.g. EMP001"
+                    required
+                  />
+                  {formErrors.employeeCode && formTouched.employeeCode && (
+                    <p className="text-red-500 text-sm mt-1">{formErrors.employeeCode}</p>
+                  )}
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Email <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    value={createFormData.email}
+                    onChange={(e) => handleFieldChange('email', e.target.value)}
+                    onBlur={() => handleFieldBlur('email')}
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 text-gray-900 ${
+                      formErrors.email && formTouched.email
+                        ? 'border-red-500 focus:ring-red-500' 
+                        : formTouched.email && !formErrors.email
+                        ? 'border-green-500 focus:ring-green-500'
+                        : 'border-gray-300 focus:ring-blue-500'
+                    }`}
+                    placeholder="user@example.com"
+                    required
+                  />
+                  {formErrors.email && formTouched.email && (
+                    <p className="text-red-500 text-sm mt-1">{formErrors.email}</p>
+                  )}
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Display Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={createFormData.displayName}
+                    onChange={(e) => handleFieldChange('displayName', e.target.value)}
+                    onBlur={() => handleFieldBlur('displayName')}
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 text-gray-900 ${
+                      formErrors.displayName && formTouched.displayName
+                        ? 'border-red-500 focus:ring-red-500' 
+                        : formTouched.displayName && !formErrors.displayName
+                        ? 'border-green-500 focus:ring-green-500'
+                        : 'border-gray-300 focus:ring-blue-500'
+                    }`}
+                    placeholder="John Doe"
+                    required
+                  />
+                  {formErrors.displayName && formTouched.displayName && (
+                    <p className="text-red-500 text-sm mt-1">{formErrors.displayName}</p>
+                  )}
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Role <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={createFormData.roleIds[0] || ''}
+                    onChange={(e) => {
+                      const roleId = e.target.value ? [Number(e.target.value)] : [];
+                      handleFieldChange('roleIds', roleId);
+                    }}
+                    onBlur={() => handleFieldBlur('roleIds')}
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 text-gray-900 ${
+                      formErrors.roleIds && formTouched.roleIds
+                        ? 'border-red-500 focus:ring-red-500' 
+                        : formTouched.roleIds && !formErrors.roleIds
+                        ? 'border-green-500 focus:ring-green-500'
+                        : 'border-gray-300 focus:ring-blue-500'
+                    }`}
+                    required
+                  >
+                    <option value="">Select a role...</option>
+                    {availableRoles.map(role => (
+                      <option key={role.id} value={role.id}>
+                        {role.name}
+                      </option>
+                    ))}
+                  </select>
+                  {formErrors.roleIds && formTouched.roleIds && (
+                    <p className="text-red-500 text-sm mt-1">{formErrors.roleIds}</p>
+                  )}
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Initial Password</label>
+                  <input
+                    type="password"
+                    value={createFormData.initialPassword}
+                    onChange={(e) => handleFieldChange('initialPassword', e.target.value)}
+                    onBlur={() => handleFieldBlur('initialPassword')}
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 text-gray-900 ${
+                      formErrors.initialPassword && formTouched.initialPassword
+                        ? 'border-red-500 focus:ring-red-500' 
+                        : formTouched.initialPassword && !formErrors.initialPassword && createFormData.initialPassword
+                        ? 'border-green-500 focus:ring-green-500'
+                        : 'border-gray-300 focus:ring-blue-500'
+                    }`}
+                    placeholder="Leave blank to auto-generate"
+                  />
+                  {formErrors.initialPassword && formTouched.initialPassword && (
+                    <p className="text-red-500 text-sm mt-1">{formErrors.initialPassword}</p>
+                  )}
+                  {createFormData.initialPassword && (
+                    <div className="mt-2">
+                      <div className="flex items-center space-x-2">
+                        <div className="flex space-x-1">
+                          {[1, 2, 3, 4, 5].map((level) => {
+                            const strength = validatePassword(createFormData.initialPassword).strength;
+                            return (
+                              <div
+                                key={level}
+                                className={`h-2 w-4 rounded ${
+                                  level <= strength
+                                    ? strength <= 2
+                                      ? 'bg-red-500'
+                                      : strength <= 3
+                                      ? 'bg-yellow-500'
+                                      : strength <= 4
+                                      ? 'bg-blue-500'
+                                      : 'bg-green-500'
+                                    : 'bg-gray-200'
+                                }`}
+                              />
+                            );
+                          })}
+                        </div>
+                        <span className="text-xs text-gray-600">
+                          {validatePassword(createFormData.initialPassword).strength <= 2
+                            ? 'Weak'
+                            : validatePassword(createFormData.initialPassword).strength <= 3
+                            ? 'Fair'
+                            : validatePassword(createFormData.initialPassword).strength <= 4
+                            ? 'Good'
+                            : 'Strong'}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">Leave blank to auto-generate a secure password</p>
+                </div>
+                
+                <div>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={createFormData.mustChangePassword}
+                      onChange={(e) => handleFieldChange('mustChangePassword', e.target.checked)}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <span className="text-sm text-gray-700">Require password change on first login</span>
+                  </label>
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    setCreateFormData({
+                      employeeCode: '',
+                      email: '',
+                      displayName: '',
+                      roleIds: [],
+                      initialPassword: '',
+                      mustChangePassword: true
+                    });
+                    setFormErrors({});
+                    setFormTouched({});
+                  }}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateUser}
+                  disabled={!isFormValid()}
+                  className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Create User
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Confirmation Modal */}
       {showConfirmModal.show && (
