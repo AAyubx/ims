@@ -10,6 +10,7 @@ A modern, multi-tenant inventory management system built with Spring Boot, featu
 - **Role-Based Access Control**: Admin user creation, role assignment, and lifecycle management
 - **Session Management**: Active session tracking, individual/bulk session termination
 - **Advanced Authentication**: JWT-based auth with password policies and session management
+- **Email Service**: Professional welcome emails, password reset notifications, and account updates
 - **Security Controls**: Failed login tracking, account lockout, password reset, and password history
 - **Audit Logging**: Comprehensive tracking of all user actions and system changes
 
@@ -27,6 +28,7 @@ A modern, multi-tenant inventory management system built with Spring Boot, featu
 - **Frontend**: Next.js 14, React 18, TypeScript, Tailwind CSS
 - **Database**: MySQL 8.0 with Flyway migrations
 - **Caching**: Redis for session and configuration caching
+- **Email**: Spring Mail with Thymeleaf templates, MailHog for development
 - **Authentication**: JWT tokens with refresh mechanism
 - **Documentation**: OpenAPI 3 (Swagger)
 - **Testing**: JUnit 5, Mockito, Testcontainers
@@ -218,10 +220,42 @@ The comprehensive admin user management system includes:
 ## 🐳 Docker Services
 
 The `docker-compose.yml` includes:
-- **MySQL 8.0**: Primary database
-- **Redis 7**: Caching and sessions
-- **phpMyAdmin**: Database management UI
-- **Redis Commander**: Redis management UI
+- **MySQL 8.0**: Primary database with multi-tenant support
+- **Redis 7**: Caching and session storage
+- **phpMyAdmin**: Database management UI (http://localhost:8080)
+- **Redis Commander**: Redis management UI (http://localhost:8081)
+- **MailHog**: Email testing service (UI: http://localhost:8025, SMTP: 1025)
+
+## 📧 Email Service
+
+### Features
+- **Professional Templates**: Beautiful HTML email templates with company branding
+- **Account Creation**: Automatic welcome emails for new users with account details
+- **Password Management**: Password reset and change notifications
+- **Multi-format**: Both HTML and plain text email support
+- **Development Testing**: MailHog integration for local email testing
+
+### Email Types
+- **Welcome Email**: Sent automatically when admin creates new user account
+- **Password Reset**: Secure password reset with expiring tokens
+- **Password Changed**: Confirmation when password is successfully updated
+- **Account Updates**: Notifications for account status changes
+
+### Configuration
+```yaml
+spring:
+  mail:
+    host: ${MAIL_HOST:localhost}  # MailHog for dev, SMTP server for prod
+    port: ${MAIL_PORT:1025}       # 1025 for MailHog, 587 for production
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+```
+
+### Testing Emails
+1. **Start MailHog**: Already included in docker-compose.yml
+2. **Create User**: Use the admin interface to create a new user
+3. **View Email**: Open http://localhost:8025 to see the sent welcome email
+4. **Production**: Configure SMTP settings via environment variables
 
 ## 🔍 Monitoring & Health
 
