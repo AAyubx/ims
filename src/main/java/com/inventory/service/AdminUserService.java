@@ -154,6 +154,33 @@ public class AdminUserService {
         auditService.logUserAction("USER_CREATED", currentUserId, 
                 "Created user with email: " + request.getEmail(), savedUser.getId().toString());
 
+        // Send welcome email to the new user
+        try {
+            List<String> roleNames = savedUser.getRoles().stream()
+                    .map(Role::getName)
+                    .collect(Collectors.toList());
+            
+            String temporaryPassword = null;
+            // Only include password in email if it was auto-generated
+            if (request.getInitialPassword() == null || request.getInitialPassword().trim().isEmpty()) {
+                temporaryPassword = password;
+            }
+            
+            emailService.sendAccountCreationEmail(
+                savedUser.getEmail(),
+                savedUser.getDisplayName(),
+                savedUser.getEmployeeCode(),
+                roleNames,
+                temporaryPassword
+            );
+            
+            log.info("Welcome email sent to new user: {}", savedUser.getEmail());
+            
+        } catch (Exception e) {
+            log.error("Failed to send welcome email to new user: {} - {}", savedUser.getEmail(), e.getMessage());
+            // Continue execution - email failure shouldn't prevent user creation
+        }
+
         return UserResponseDto.fromEntity(savedUser);
     }
 

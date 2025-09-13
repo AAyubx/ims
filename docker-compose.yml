@@ -63,6 +63,19 @@ services:
     networks:
       - inventory-network
 
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: inventory-mailhog
+    ports:
+      - "1026:1025"  # SMTP port
+      - "8025:8025"  # Web UI port
+    networks:
+      - inventory-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8025"]
+      timeout: 10s
+      retries: 5
+
 volumes:
   mysql_data:
     driver: local
