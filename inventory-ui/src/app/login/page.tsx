@@ -10,11 +10,13 @@ import { Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/stores/authStore';
 import { loginSchema, LoginFormData } from '@/lib/validations';
+import PasswordChangeModal from '@/components/auth/PasswordChangeModal';
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordChangeModal, setShowPasswordChangeModal] = useState(false);
   const router = useRouter();
-  const { login, isLoading, error, clearError, isAuthenticated } = useAuthStore();
+  const { login, isLoading, error, clearError, isAuthenticated, mustChangePassword } = useAuthStore();
 
   const {
     register,
@@ -30,12 +32,14 @@ export default function LoginPage() {
     },
   });
 
-  // Redirect to dashboard if already authenticated
+  // Redirect to dashboard if already authenticated and no password change required
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !mustChangePassword) {
       router.push('/dashboard');
+    } else if (isAuthenticated && mustChangePassword) {
+      setShowPasswordChangeModal(true);
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, mustChangePassword, router]);
 
   // Clear errors when form values change
   useEffect(() => {
@@ -46,9 +50,14 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      await login(data);
-      toast.success('Login successful! Welcome back.');
-      // Success - redirect will happen via useEffect above
+      const result = await login(data);
+      if (result.mustChangePassword) {
+        toast.success('Login successful! You must change your password before continuing.');
+        setShowPasswordChangeModal(true);
+      } else {
+        toast.success('Login successful! Welcome back.');
+        // Success - redirect will happen via useEffect above
+      }
     } catch (err) {
       // Error is already set in the store
       toast.error('Login failed. Please check your credentials.');
@@ -56,11 +65,16 @@ export default function LoginPage() {
     }
   };
 
-  if (isAuthenticated) {
+  if (isAuthenticated && !mustChangePassword) {
     return null; // Will redirect in useEffect
   }
 
   return (
+    <>
+      <PasswordChangeModal 
+        isOpen={showPasswordChangeModal} 
+        isRequired={true}
+      />
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
@@ -225,5 +239,6 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }
