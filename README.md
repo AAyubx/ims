@@ -6,6 +6,7 @@ A modern, multi-tenant inventory management system built with Spring Boot, featu
 
 ### Core Functionality
 - **Multi-tenant Architecture**: Complete tenant isolation and data security
+- **Store Management**: Complete store creation with multi-step wizard, location setup, and tax configuration
 - **Comprehensive User Management**: Full CRUD operations, advanced filtering, bulk actions
 - **Role-Based Access Control**: Admin user creation, role assignment, and lifecycle management
 - **Session Management**: Active session tracking, individual/bulk session termination
@@ -181,6 +182,14 @@ npm run test:watch
 - `GET /api/admin/users/roles` - Get available roles
 - `POST /api/admin/users/bulk-actions` - Perform bulk operations
 
+### Store Management
+- `GET /api/admin/locations` - List all stores/locations with filtering
+- `GET /api/admin/locations/{id}` - Get store details by ID
+- `POST /api/admin/locations` - Create new store with location setup
+- `PUT /api/admin/locations/{id}` - Update store information
+- `GET /api/admin/locations/tax-jurisdictions` - Get available tax jurisdictions
+- `GET /api/admin/locations/currencies` - Get supported currencies
+
 Full API documentation available at `/swagger-ui.html`.
 
 ### Admin User Management Features
@@ -213,10 +222,43 @@ The comprehensive admin user management system includes:
 
 **Database Schema Updates:**
 - New `password_reset_token` table for secure password reset functionality
+- Enhanced `location` table with comprehensive store management fields
+- New `tax_jurisdiction` table for location-based tax configuration
+- New `location_currency` table for multi-currency support per location
 - Token expiry tracking with configurable timeout (24 hours default)  
 - Rate limiting support (3 requests per hour per email)
 - IP address and user agent tracking for security audit
 - Multi-tenant isolation with proper foreign key constraints
+
+## 🏪 Store Management Features
+
+The comprehensive store management system includes:
+
+**Store Creation Wizard:**
+- ✅ Multi-step guided store creation process (2-step wizard implemented)
+- ✅ Basic information setup (name, code, type, description)
+- ✅ Location configuration with full address details
+- ❌ Tax jurisdiction assignment for compliance (backend ready, UI missing)
+- ⏸️ Multi-currency support per store location (auto-selection implemented, manual selection missing)
+
+**Store Management Capabilities:**
+- ✅ Complete CRUD operations for store locations
+- ✅ Store status management (ACTIVE/INACTIVE)
+- ❌ Tax configuration with jurisdiction-based rules (backend ready, UI missing)
+- ⏸️ Currency settings per location for international operations (basic implementation)
+- ✅ Address validation and geographic data storage
+
+**Frontend Components:**
+- ✅ React-based store creation wizard with TypeScript
+- ✅ Form validation using Zod schemas
+- ✅ Step-by-step navigation with progress tracking
+- ✅ Responsive design with Tailwind CSS
+- ✅ Integration with backend APIs for real-time validation
+
+**Current Implementation Status:**
+- **Completed**: Basic 2-step store creation wizard with address and GPS coordinates
+- **Missing**: Tax jurisdiction selection, advanced currency configuration, store hierarchy visualization
+- **Backend Ready**: All database tables and APIs exist for missing UI components
 
 ## 🐳 Docker Services
 
@@ -276,6 +318,10 @@ spring:
 3. Implement service layer
 4. Create controllers
 5. Add tests
+
+### Project Configuration
+- **Prompts folder**: Added to `.gitignore` to exclude development prompts and temporary files from version control
+- **Development files**: Local configuration and prompt files are excluded from repository
 
 ## 🔒 Security Best Practices
 
