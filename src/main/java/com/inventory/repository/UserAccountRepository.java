@@ -15,25 +15,25 @@ import java.util.Optional;
 @Repository
 public interface UserAccountRepository extends JpaRepository<UserAccount, Long> {
 
-    Optional<UserAccount> findByEmailIgnoreCaseAndTenantId(String email, Long tenantId);
+    Optional<UserAccount> findByEmailIgnoreCaseAndTenant_Id(String email, Long tenantId);
 
     Optional<UserAccount> findByEmailIgnoreCase(String email);
 
-    Optional<UserAccount> findByEmployeeCodeAndTenantId(String employeeCode, Long tenantId);
+    Optional<UserAccount> findByEmployeeCodeAndTenant_Id(String employeeCode, Long tenantId);
 
-    Page<UserAccount> findByTenantId(Long tenantId, Pageable pageable);
+    Page<UserAccount> findByTenant_Id(Long tenantId, Pageable pageable);
 
     @Query("SELECT u FROM UserAccount u WHERE u.tenant.id = :tenantId AND " +
            "(LOWER(u.email) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
            "LOWER(u.displayName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
            "LOWER(u.employeeCode) LIKE LOWER(CONCAT('%', :searchTerm, '%')))")
-    Page<UserAccount> findByTenantIdAndSearchTerm(@Param("tenantId") Long tenantId,
+    Page<UserAccount> findByTenant_IdAndSearchTerm(@Param("tenantId") Long tenantId,
                                                   @Param("searchTerm") String searchTerm,
                                                   Pageable pageable);
 
-    boolean existsByEmailIgnoreCaseAndTenantId(String email, Long tenantId);
+    boolean existsByEmailIgnoreCaseAndTenant_Id(String email, Long tenantId);
 
-    boolean existsByEmployeeCodeAndTenantId(String employeeCode, Long tenantId);
+    boolean existsByEmployeeCodeAndTenant_Id(String employeeCode, Long tenantId);
 
     @Query("SELECT u FROM UserAccount u WHERE u.passwordExpiresAt IS NOT NULL AND " +
            "u.passwordExpiresAt <= :expiryDate AND u.status = 'ACTIVE'")
@@ -47,7 +47,7 @@ public interface UserAccountRepository extends JpaRepository<UserAccount, Long> 
     long countActiveAdmins();
 
     @Query("SELECT u FROM UserAccount u WHERE u.tenant.id = :tenantId AND u.status = :status")
-    Page<UserAccount> findByTenantIdAndStatus(@Param("tenantId") Long tenantId,
+    Page<UserAccount> findByTenant_IdAndStatus(@Param("tenantId") Long tenantId,
                                               @Param("status") UserAccount.UserStatus status,
                                               Pageable pageable);
 
@@ -67,4 +67,25 @@ public interface UserAccountRepository extends JpaRepository<UserAccount, Long> 
                                    @Param("emailAddress") String emailAddress,
                                    @Param("status") UserAccount.UserStatus status,
                                    Pageable pageable);
+
+    // Method aliases for backward compatibility
+    default Optional<UserAccount> findByEmailIgnoreCaseAndTenantId(String email, Long tenantId) {
+        return findByEmailIgnoreCaseAndTenant_Id(email, tenantId);
+    }
+
+    default Page<UserAccount> findByTenantId(Long tenantId, Pageable pageable) {
+        return findByTenant_Id(tenantId, pageable);
+    }
+
+    default Page<UserAccount> findByTenantIdAndSearchTerm(Long tenantId, String searchTerm, Pageable pageable) {
+        return findByTenant_IdAndSearchTerm(tenantId, searchTerm, pageable);
+    }
+
+    default boolean existsByEmailIgnoreCaseAndTenantId(String email, Long tenantId) {
+        return existsByEmailIgnoreCaseAndTenant_Id(email, tenantId);
+    }
+
+    default boolean existsByEmployeeCodeAndTenantId(String employeeCode, Long tenantId) {
+        return existsByEmployeeCodeAndTenant_Id(employeeCode, tenantId);
+    }
 }

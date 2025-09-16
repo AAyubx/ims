@@ -1,6 +1,6 @@
 # UI Design Guidelines and Technology Stack
 
-_Last updated: 2025-09-03_
+_Last updated: 2025-09-16_
 
 ## Overview
 
@@ -192,6 +192,321 @@ Dashboard (Overview)
 - **KPI Cards**: Status-driven color coding with trend indicators
 - **Progress Bars**: Clear completion states with percentages
 - **Status Indicators**: Universal iconography for states (pending, complete, error)
+
+## UI Component Standards & Implementation Guide
+
+### Font Colors & Text Styling
+
+#### Input Fields & Form Elements
+
+**Required Pattern:**
+```jsx
+// All input fields must include these classes for proper text visibility:
+className="... text-gray-900 placeholder-gray-500"
+
+// Example:
+<input
+  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500"
+  placeholder="Enter value here"
+/>
+```
+
+**Select Dropdowns:**
+```jsx
+// Select elements need text color but not placeholder color:
+className="... text-gray-900"
+
+// Example:
+<select className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900">
+  <option value="">Select option</option>
+</select>
+```
+
+#### Required Field Indicators
+
+**Standard Pattern:**
+```jsx
+// Always use red asterisk in a span for required fields:
+<label className="block text-sm font-medium text-gray-700 mb-2">
+  Field Name <span className="text-red-500">*</span>
+</label>
+```
+
+**NEVER use plain asterisk:**
+```jsx
+// ❌ Wrong:
+<label>Field Name *</label>
+
+// ✅ Correct:
+<label>Field Name <span className="text-red-500">*</span></label>
+```
+
+### Form Validation Standards
+
+#### React Hook Form Configuration
+
+**Standard Setup:**
+```jsx
+const form = useForm<FormData>({
+  resolver: zodResolver(validationSchema),
+  mode: 'all', // Enables real-time validation
+  defaultValues: {
+    // Define all default values here
+  }
+});
+```
+
+**Validation Triggering:**
+```jsx
+// Always trigger validation on component mount:
+useEffect(() => {
+  // Set default values if needed
+  // ...
+  
+  // Trigger validation on mount
+  trigger();
+}, [trigger]);
+```
+
+### Button Styling Standards
+
+#### Primary Action Buttons
+
+**Enabled State:**
+```jsx
+className="bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md border border-blue-600"
+```
+
+**Disabled State:**
+```jsx
+className="bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-200"
+```
+
+**Complete Example:**
+```jsx
+<button
+  disabled={!isValid}
+  className={`
+    inline-flex items-center gap-2 px-8 py-3 rounded-lg text-sm font-semibold transition-all duration-200 shadow-sm
+    ${isValid
+      ? 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md border border-blue-600'
+      : 'bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-200'
+    }
+  `}
+>
+  Button Text
+</button>
+```
+
+### Error Handling & Validation Display
+
+**Standard Pattern:**
+```jsx
+// Input with error styling:
+<input
+  className={`
+    w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500
+    ${errors.fieldName ? 'border-red-300' : 'border-gray-300'}
+  `}
+/>
+
+// Error message display:
+{errors.fieldName && (
+  <p className="mt-1 text-sm text-red-600">{errors.fieldName.message}</p>
+)}
+```
+
+### Layout Standards
+
+#### Content Container
+
+**Standard Wrapper:**
+```jsx
+// Content box with proper styling:
+<div className="bg-white rounded-lg shadow-sm border">
+  <div className="p-6">
+    {/* Content here */}
+  </div>
+</div>
+```
+
+#### Grid Layouts
+
+**Standard Responsive Grids:**
+```jsx
+// Two-column responsive:
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+// Three-column responsive:
+<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+```
+
+### Extended Color Palette
+
+#### Text Colors
+- Primary text: `text-gray-900`
+- Secondary text: `text-gray-600`
+- Placeholder text: `placeholder-gray-500`
+- Error text: `text-red-600`
+- Required indicators: `text-red-500`
+
+#### Background Colors
+- Primary button: `bg-blue-600` (hover: `bg-blue-700`)
+- Disabled button: `bg-gray-200`
+- Content background: `bg-white`
+- Selected states: `bg-blue-50`
+
+#### Border Colors
+- Default border: `border-gray-300`
+- Error border: `border-red-300`
+- Focus border: `border-blue-500`
+- Selected border: `border-blue-500`
+
+## Multi-Step Form/Wizard Layout Standards
+
+### **Template for Multi-Tab UI Requirements**
+
+This is the **approved template design** for all future multi-step forms and wizard interfaces.
+
+#### **Container Structure**
+```jsx
+// Main container with proper spacing and width
+<div className="max-w-5xl mx-auto px-6 py-8">
+  
+  {/* Step Indicator Section */}
+  <div className="mb-8 mt-6">
+    <div className="flex items-center justify-between">
+      {/* Step indicators here */}
+    </div>
+  </div>
+
+  {/* Content Container - Creates "floating" effect */}
+  <div className="bg-white rounded-lg shadow-sm border min-h-[600px] p-6">
+    {/* Step content here */}
+  </div>
+</div>
+```
+
+#### **Step Indicator Standards**
+```jsx
+// Large, prominent step circles
+<div className="w-12 h-12 rounded-full flex items-center justify-center text-base font-semibold">
+  
+// Step text with proper sizing and spacing  
+<div className="ml-4">
+  <p className="text-base font-medium">Step Title</p>
+  <p className="text-sm text-gray-500">Step Description</p>
+</div>
+
+// Check icon for completed steps
+<Check className="h-6 w-6" />
+```
+
+#### **Content Layout Principles**
+
+**1. Floating Content Design:**
+- Content padding applied to **outer container** (`p-6`), not individual components
+- Creates uniform margin on all sides (top, bottom, left, right)
+- Content "floats" within the white container instead of touching edges
+
+**2. Spacing Hierarchy:**
+- **Container**: `max-w-5xl` for optimal width, `px-6 py-8` for page margins
+- **Step indicators**: `mt-6 mb-8` for proper separation from page edges
+- **Content sections**: `space-y-8` between major form sections
+- **Minimum height**: `min-h-[600px]` ensures consistent container size
+
+**3. Step Indicator Positioning:**
+- **Size**: `w-12 h-12` circles (prominent and accessible)
+- **Typography**: `text-base` for titles, `text-sm` for descriptions  
+- **Spacing**: `ml-4` between circle and text, `mt-6` from page top
+
+#### **Implementation Pattern**
+
+**Main Wizard Component:**
+```jsx
+export default function MultiStepWizard() {
+  return (
+    <div className="max-w-5xl mx-auto px-6 py-8">
+      {/* Step Indicator */}
+      <div className="mb-8 mt-6">
+        {/* Step circles and connecting lines */}
+      </div>
+
+      {/* Content Container */}
+      <div className="bg-white rounded-lg shadow-sm border min-h-[600px] p-6">
+        {/* Individual step components */}
+      </div>
+    </div>
+  );
+}
+```
+
+**Individual Step Components:**
+```jsx
+export default function StepComponent() {
+  return (
+    <div className="">  {/* No padding - handled by parent */}
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">Step Title</h2>
+        <p className="text-gray-600">Step description</p>
+      </div>
+
+      <form className="space-y-8">
+        {/* Form content with generous spacing */}
+      </form>
+    </div>
+  );
+}
+```
+
+#### **Visual Design Goals Achieved**
+- ✅ **Professional floating content** - Not stuck to container edges
+- ✅ **Prominent step indicators** - Easy to read and navigate
+- ✅ **Consistent spacing** - Uniform margins and padding throughout
+- ✅ **Scalable design** - Works for 2+ steps, adapts to content length
+- ✅ **Accessibility** - Large touch targets, clear visual hierarchy
+- ✅ **Responsive layout** - Maintains proportions across screen sizes
+
+#### **Key Measurements**
+- **Container width**: `max-w-5xl` (optimal reading width)
+- **Step circles**: `w-12 h-12` (accessible size)
+- **Content padding**: `p-6` (uniform floating effect)
+- **Section spacing**: `space-y-8` (comfortable separation)
+- **Minimum height**: `min-h-[600px]` (prevents layout shifts)
+
+### Common Issues to Avoid
+
+1. **❌ Missing text color on inputs** - Always include `text-gray-900`
+2. **❌ Plain asterisk for required fields** - Always use `<span className="text-red-500">*</span>`
+3. **❌ Wrong form validation mode** - Use `mode: 'all'` for real-time validation
+4. **❌ Missing validation trigger** - Always call `trigger()` on component mount
+5. **❌ Insufficient spacing** - Follow the spacing standards above
+6. **❌ Inconsistent button styling** - Use the standard button patterns
+
+### Development Checklists
+
+#### **Checklist for New Forms**
+- [ ] Input fields have `text-gray-900 placeholder-gray-500`
+- [ ] Select fields have `text-gray-900`
+- [ ] Required fields use red span asterisk
+- [ ] Form uses `mode: 'all'` validation
+- [ ] Validation triggers on mount
+- [ ] Buttons follow standard enabled/disabled styling
+- [ ] Proper spacing between sections
+- [ ] Error messages use `text-red-600`
+- [ ] Content wrapped in proper container with padding
+
+#### **Checklist for Multi-Step Forms**
+- [ ] Main container uses `max-w-5xl mx-auto px-6 py-8`
+- [ ] Step indicators have `mb-8 mt-6` spacing
+- [ ] Step circles are `w-12 h-12` with `text-base` font
+- [ ] Content container has `bg-white rounded-lg shadow-sm border min-h-[600px] p-6`
+- [ ] Individual step components have NO padding (handled by parent)
+- [ ] Form sections use `space-y-8` for generous spacing
+- [ ] Step titles use `text-xl font-semibold text-gray-900`
+- [ ] Content "floats" within container (doesn't touch edges)
+- [ ] Navigation buttons positioned with proper spacing
+- [ ] Responsive design maintained across screen sizes
 
 ---
 
@@ -591,3 +906,7 @@ This comprehensive guide ensures the inventory management UI delivers enterprise
 This document consolidates information from:
 - ui_design_guidelines.md
 - ui_tech_stack.md
+- ui-standards.md (merged 2025-09-16)
+
+### Document History
+- **2025-09-16**: Merged ui-standards.md content including comprehensive UI component standards, multi-step form templates, font color specifications, form validation patterns, and development checklists. Added detailed multi-tab UI design template approved for all future wizard interfaces.

@@ -14,9 +14,9 @@ import java.util.List;
 @Repository
 public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
 
-    Page<AuditLog> findByTenantIdOrderByCreatedAtDesc(Long tenantId, Pageable pageable);
+    Page<AuditLog> findByTenant_IdOrderByCreatedAtDesc(Long tenantId, Pageable pageable);
 
-    Page<AuditLog> findByTenantIdAndActionTypeOrderByCreatedAtDesc(Long tenantId,
+    Page<AuditLog> findByTenant_IdAndActionTypeOrderByCreatedAtDesc(Long tenantId,
                                                                    AuditLog.ActionType actionType,
                                                                    Pageable pageable);
 
@@ -25,7 +25,7 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
     @Query("SELECT al FROM AuditLog al WHERE al.tenant.id = :tenantId AND " +
            "al.entityType = :entityType AND al.entityId = :entityId " +
            "ORDER BY al.createdAt DESC")
-    Page<AuditLog> findByTenantIdAndEntityTypeAndEntityIdOrderByCreatedAtDesc(
+    Page<AuditLog> findByTenant_IdAndEntityTypeAndEntityIdOrderByCreatedAtDesc(
             @Param("tenantId") Long tenantId,
             @Param("entityType") String entityType,
             @Param("entityId") String entityId,
@@ -34,7 +34,7 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
     @Query("SELECT al FROM AuditLog al WHERE al.tenant.id = :tenantId AND " +
            "al.createdAt >= :startDate AND al.createdAt <= :endDate " +
            "ORDER BY al.createdAt DESC")
-    Page<AuditLog> findByTenantIdAndCreatedAtBetween(@Param("tenantId") Long tenantId,
+    Page<AuditLog> findByTenant_IdAndCreatedAtBetween(@Param("tenantId") Long tenantId,
                                                      @Param("startDate") LocalDateTime startDate,
                                                      @Param("endDate") LocalDateTime endDate,
                                                      Pageable pageable);
