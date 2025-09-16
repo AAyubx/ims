@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { LogOut, User, Users, Settings, Shield } from 'lucide-react';
+import { LogOut, User, Users, Settings, Shield, MapPin } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { AuthAPI } from '@/lib/api';
 
@@ -148,6 +148,17 @@ export default function DashboardPage() {
                   <div className="text-left">
                     <div className="font-medium text-blue-900">User Management</div>
                     <div className="text-sm text-blue-700">Manage users, roles, and permissions</div>
+                  </div>
+                </button>
+                
+                <button
+                  onClick={() => router.push('/admin/stores')}
+                  className="flex items-center p-4 bg-white border border-blue-200 rounded-md hover:border-blue-300 hover:bg-blue-50 transition-colors duration-200"
+                >
+                  <MapPin className="h-6 w-6 text-blue-600 mr-3" />
+                  <div className="text-left">
+                    <div className="font-medium text-blue-900">Store Management</div>
+                    <div className="text-sm text-blue-700">Manage stores and locations</div>
                   </div>
                 </button>
                 
