@@ -5,6 +5,7 @@ A modern, multi-tenant inventory management system built with Spring Boot, featu
 ## 🚀 Features
 
 ### Core Functionality
+
 - **Multi-tenant Architecture**: Complete tenant isolation and data security
 - **Store Management**: Complete store creation with multi-step wizard, location setup, and tax configuration
 - **Comprehensive User Management**: Full CRUD operations, advanced filtering, bulk actions
@@ -16,6 +17,7 @@ A modern, multi-tenant inventory management system built with Spring Boot, featu
 - **Audit Logging**: Comprehensive tracking of all user actions and system changes
 
 ### Security Features
+
 - Password policy enforcement (complexity, expiry, history)
 - **Mandatory password change on first login** with interactive modal and validation
 - Account lockout after failed login attempts with manual unlock capability
@@ -26,6 +28,7 @@ A modern, multi-tenant inventory management system built with Spring Boot, featu
 - Secure user activation/deactivation workflow
 
 ### Technical Stack
+
 - **Backend**: Spring Boot 3.2, Spring Security 6, Spring Data JPA
 - **Frontend**: Next.js 14, React 18, TypeScript, Tailwind CSS
 - **Database**: MySQL 8.0 with Flyway migrations
@@ -45,17 +48,20 @@ A modern, multi-tenant inventory management system built with Spring Boot, featu
 ## 🛠️ Quick Start
 
 1. **Clone and Navigate**
+
    ```bash
    git clone <repository-url>
    cd inventory-management-system
    ```
 
 2. **Start Services**
+
    ```bash
    docker-compose up -d mysql redis
    ```
 
 3. **Build and Run Backend**
+
    ```bash
    mvn clean compile
    mvn flyway:migrate
@@ -63,6 +69,7 @@ A modern, multi-tenant inventory management system built with Spring Boot, featu
    ```
 
 4. **Start Frontend (separate terminal)**
+
    ```bash
    cd inventory-ui
    npm install
@@ -105,16 +112,17 @@ src/
 
 ## 🔐 Default Users
 
-| Email | Role | Employee Code | Status |
-|-------|------|---------------|--------|
-| admin@demo.example | ADMIN | EMP001 | Password required |
-| manager@demo.example | MANAGER | EMP002 | Password required |
+| Email                | Role    | Employee Code | Status            |
+| -------------------- | ------- | ------------- | ----------------- |
+| admin@demo.example   | ADMIN   | EMP001        | Password required |
+| manager@demo.example | MANAGER | EMP002        | Password required |
 
 Use the password reset functionality to set initial passwords.
 
 ## 🔧 Configuration
 
 ### Key Settings
+
 - **Password Expiry**: 60 days (configurable)
 - **Login Attempts**: 5 max before lockout
 - **Session Timeout**: 8 hours
@@ -122,6 +130,7 @@ Use the password reset functionality to set initial passwords.
 - **API Base URL**: http://localhost:8080/api (frontend config)
 
 ### Environment Variables
+
 ```bash
 # Backend
 JWT_SECRET=your-256-bit-secret
@@ -136,6 +145,7 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8080/api
 ## 🧪 Testing
 
 **Backend Tests:**
+
 ```bash
 # Run all tests
 mvn test
@@ -148,6 +158,7 @@ mvn clean test jacoco:report
 ```
 
 **Frontend Tests:**
+
 ```bash
 # Navigate to frontend directory
 cd inventory-ui
@@ -162,12 +173,14 @@ npm run test:watch
 ## 📊 API Endpoints
 
 ### Authentication
+
 - `POST /api/auth/login` - User login
 - `POST /api/auth/logout` - User logout
 - `POST /api/auth/change-password` - Change password
 - `POST /api/auth/forgot-password` - Password reset request
 
 ### Admin User Management
+
 - `GET /api/admin/users` - List users with filtering and pagination
 - `GET /api/admin/users/{id}` - Get user details by ID
 - `POST /api/admin/users` - Create new user
@@ -183,6 +196,7 @@ npm run test:watch
 - `POST /api/admin/users/bulk-actions` - Perform bulk operations
 
 ### Store Management
+
 - `GET /api/admin/locations` - List all stores/locations with filtering
 - `GET /api/admin/locations/{id}` - Get store details by ID
 - `POST /api/admin/locations` - Create new store with location setup
@@ -197,18 +211,21 @@ Full API documentation available at `/swagger-ui.html`.
 The comprehensive admin user management system includes:
 
 **User Lifecycle Management:**
+
 - Create users with custom or auto-generated passwords
-- Update user information and role assignments  
+- Update user information and role assignments
 - Activate/deactivate user accounts with proper audit trails
 - Bulk operations for efficient multi-user management
 
 **Advanced Filtering & Search:**
+
 - Search by email, name, or employee code
 - Filter by status (ACTIVE/INACTIVE), first name, email
 - Paginated results with customizable sorting
 - Real-time user status tracking
 
 **Security & Session Control:**
+
 - View and manage active user sessions
 - Terminate individual or all sessions for any user
 - Password reset functionality with temporary passwords
@@ -216,16 +233,18 @@ The comprehensive admin user management system includes:
 - Role-based permissions with dynamic role assignment
 
 **Bulk Operations:**
+
 - Bulk activate/deactivate multiple users
 - Bulk password reset with generated temporary passwords
 - Efficient batch processing with detailed response feedback
 
 **Database Schema Updates:**
+
 - New `password_reset_token` table for secure password reset functionality
 - Enhanced `location` table with comprehensive store management fields
 - New `tax_jurisdiction` table for location-based tax configuration
 - New `location_currency` table for multi-currency support per location
-- Token expiry tracking with configurable timeout (24 hours default)  
+- Token expiry tracking with configurable timeout (24 hours default)
 - Rate limiting support (3 requests per hour per email)
 - IP address and user agent tracking for security audit
 - Multi-tenant isolation with proper foreign key constraints
@@ -235,6 +254,7 @@ The comprehensive admin user management system includes:
 The comprehensive store management system includes:
 
 **Store Creation Wizard:**
+
 - ✅ Multi-step guided store creation process (2-step wizard implemented)
 - ✅ Basic information setup (name, code, type, description)
 - ✅ Location configuration with full address details
@@ -242,6 +262,7 @@ The comprehensive store management system includes:
 - ⏸️ Multi-currency support per store location (auto-selection implemented, manual selection missing)
 
 **Store Management Capabilities:**
+
 - ✅ Complete CRUD operations for store locations
 - ✅ Store status management (ACTIVE/INACTIVE)
 - ❌ Tax configuration with jurisdiction-based rules (backend ready, UI missing)
@@ -249,6 +270,7 @@ The comprehensive store management system includes:
 - ✅ Address validation and geographic data storage
 
 **Frontend Components:**
+
 - ✅ React-based store creation wizard with TypeScript
 - ✅ Form validation using Zod schemas
 - ✅ Step-by-step navigation with progress tracking
@@ -256,6 +278,7 @@ The comprehensive store management system includes:
 - ✅ Integration with backend APIs for real-time validation
 
 **Current Implementation Status:**
+
 - **Completed**: Basic 2-step store creation wizard with address and GPS coordinates
 - **Missing**: Tax jurisdiction selection, advanced currency configuration, store hierarchy visualization
 - **Backend Ready**: All database tables and APIs exist for missing UI components
@@ -263,6 +286,7 @@ The comprehensive store management system includes:
 ## 🐳 Docker Services
 
 The `docker-compose.yml` includes:
+
 - **MySQL 8.0**: Primary database with multi-tenant support
 - **Redis 7**: Caching and session storage
 - **phpMyAdmin**: Database management UI (http://localhost:8080)
@@ -272,6 +296,7 @@ The `docker-compose.yml` includes:
 ## 📧 Email Service
 
 ### Features
+
 - **Professional Templates**: Beautiful HTML email templates with company branding
 - **Account Creation**: Automatic welcome emails for new users with account details
 - **Password Management**: Password reset and change notifications
@@ -279,22 +304,25 @@ The `docker-compose.yml` includes:
 - **Development Testing**: MailHog integration for local email testing
 
 ### Email Types
+
 - **Welcome Email**: Sent automatically when admin creates new user account
 - **Password Reset**: Secure password reset with expiring tokens
 - **Password Changed**: Confirmation when password is successfully updated
 - **Account Updates**: Notifications for account status changes
 
 ### Configuration
+
 ```yaml
 spring:
   mail:
-    host: ${MAIL_HOST:localhost}  # MailHog for dev, SMTP server for prod
-    port: ${MAIL_PORT:1025}       # 1025 for MailHog, 587 for production
+    host: ${MAIL_HOST:localhost} # MailHog for dev, SMTP server for prod
+    port: ${MAIL_PORT:1025} # 1025 for MailHog, 587 for production
     username: ${MAIL_USERNAME:}
     password: ${MAIL_PASSWORD:}
 ```
 
 ### Testing Emails
+
 1. **Start MailHog**: Already included in docker-compose.yml
 2. **Create User**: Use the admin interface to create a new user
 3. **View Email**: Open http://localhost:8025 to see the sent welcome email
@@ -309,10 +337,12 @@ spring:
 ## 🚧 Development
 
 ### Database Changes
+
 1. Create migration in `src/main/resources/db/migration/`
 2. Run `mvn flyway:migrate`
 
 ### Adding Features
+
 1. Create/update entities
 2. Add repository methods
 3. Implement service layer
@@ -320,6 +350,7 @@ spring:
 5. Add tests
 
 ### Project Configuration
+
 - **Prompts folder**: Added to `.gitignore` to exclude development prompts and temporary files from version control
 - **Development files**: Local configuration and prompt files are excluded from repository
 
@@ -353,15 +384,7 @@ spring:
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 📞 Support
-
-For setup issues or questions:
-1. Check [SETUP_INSTRUCTIONS.md](SETUP_INSTRUCTIONS.md)
-2. Review application logs in `logs/`
-3. Verify Docker services are running
-4. Check database connectivity
+This project is licensed under the LGPL-3.0 License - see the LICENSE file for details.
 
 ---
 
