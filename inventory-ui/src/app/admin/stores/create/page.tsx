@@ -61,7 +61,7 @@ export default function CreateStorePage() {
           <div className="flex items-center gap-4 mb-4">
             <button
               onClick={() => router.back()}
-              className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-md transition-colors cursor-pointer"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>

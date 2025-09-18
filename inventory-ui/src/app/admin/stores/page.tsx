@@ -89,7 +89,7 @@ export default function StoresPage() {
             <p className="text-red-600">Error: {error}</p>
             <button
               onClick={fetchStores}
-              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 cursor-pointer"
             >
               Retry
             </button>
@@ -113,7 +113,7 @@ export default function StoresPage() {
           <div className="mt-4 sm:mt-0">
             <button
               onClick={() => router.push('/admin/stores/create')}
-              className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors cursor-pointer"
             >
               <Plus className="h-4 w-4" />
               Create Store
@@ -129,7 +129,7 @@ export default function StoresPage() {
             <p className="text-gray-600 mb-6">Get started by creating your first store location.</p>
             <button
               onClick={() => router.push('/admin/stores/create')}
-              className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors cursor-pointer"
             >
               <Plus className="h-4 w-4" />
               Create First Store
@@ -178,7 +178,7 @@ export default function StoresPage() {
                     </div>
                     <button
                       onClick={() => router.push(`/admin/stores/${store.id}`)}
-                      className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm font-medium"
+                      className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm font-medium cursor-pointer"
                     >
                       <Eye className="h-4 w-4" />
                       View Details
