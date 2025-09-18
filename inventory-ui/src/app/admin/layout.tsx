@@ -79,7 +79,7 @@ export default function AdminLayout({
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => router.push('/dashboard')}
-                className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium cursor-pointer"
               >
                 Back to Dashboard
               </button>
@@ -94,7 +94,7 @@ export default function AdminLayout({
           <div className="flex items-center py-3 text-sm">
             <button
               onClick={() => router.push('/dashboard')}
-              className="flex items-center text-gray-500 hover:text-gray-700"
+              className="flex items-center text-gray-500 hover:text-gray-700 cursor-pointer"
             >
               <Home className="h-4 w-4 mr-1" />
               Dashboard

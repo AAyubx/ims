@@ -394,7 +394,7 @@ export default function AdminUsersPage() {
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center space-x-2"
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center space-x-2 cursor-pointer"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -439,7 +439,7 @@ export default function AdminUsersPage() {
         </div>
         <button
           onClick={clearFilters}
-          className="px-4 py-2 text-sm text-blue-600 hover:text-blue-800"
+          className="px-4 py-2 text-sm text-blue-600 hover:text-blue-800 cursor-pointer"
         >
           Clear All Filters
         </button>
@@ -454,19 +454,19 @@ export default function AdminUsersPage() {
           <div className="space-x-2">
             <button
               onClick={() => handleBulkAction('ACTIVATE')}
-              className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+              className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700 cursor-pointer"
             >
               Activate
             </button>
             <button
               onClick={() => handleBulkAction('DEACTIVATE')}
-              className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+              className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 cursor-pointer"
             >
               Deactivate
             </button>
             <button
               onClick={() => handleBulkAction('RESET_PASSWORD')}
-              className="px-3 py-1 text-sm bg-yellow-600 text-white rounded hover:bg-yellow-700"
+              className="px-3 py-1 text-sm bg-yellow-600 text-white rounded hover:bg-yellow-700 cursor-pointer"
             >
               Reset Passwords
             </button>
@@ -567,28 +567,28 @@ export default function AdminUsersPage() {
                         {user.status === 'INACTIVE' ? (
                           <button
                             onClick={() => handleUserAction(user.id, 'activate')}
-                            className="text-green-600 hover:text-green-900"
+                            className="text-green-600 hover:text-green-900 cursor-pointer"
                           >
                             Activate
                           </button>
                         ) : (
                           <button
                             onClick={() => handleUserAction(user.id, 'deactivate')}
-                            className="text-red-600 hover:text-red-900"
+                            className="text-red-600 hover:text-red-900 cursor-pointer"
                           >
                             Deactivate
                           </button>
                         )}
                         <button
                           onClick={() => handleUserAction(user.id, 'resetPassword')}
-                          className="text-yellow-600 hover:text-yellow-900"
+                          className="text-yellow-600 hover:text-yellow-900 cursor-pointer"
                         >
                           Reset Password
                         </button>
                         {user.accountLockedUntil && (
                           <button
                             onClick={() => handleUserAction(user.id, 'unlock')}
-                            className="text-blue-600 hover:text-blue-900"
+                            className="text-blue-600 hover:text-blue-900 cursor-pointer"
                           >
                             Unlock
                           </button>
@@ -610,14 +610,14 @@ export default function AdminUsersPage() {
                 <button
                   onClick={() => setPagination(prev => ({ ...prev, page: Math.max(0, prev.page - 1) }))}
                   disabled={pagination.page === 0}
-                  className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                  className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 ${pagination.page === 0 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                 >
                   Previous
                 </button>
                 <button
                   onClick={() => setPagination(prev => ({ ...prev, page: Math.min(prev.totalPages - 1, prev.page + 1) }))}
                   disabled={pagination.page >= pagination.totalPages - 1}
-                  className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                  className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 ${pagination.page >= pagination.totalPages - 1 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                 >
                   Next
                 </button>
@@ -635,14 +635,14 @@ export default function AdminUsersPage() {
                     <button
                       onClick={() => setPagination(prev => ({ ...prev, page: Math.max(0, prev.page - 1) }))}
                       disabled={pagination.page === 0}
-                      className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                      className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 ${pagination.page === 0 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                     >
                       Previous
                     </button>
                     <button
                       onClick={() => setPagination(prev => ({ ...prev, page: Math.min(prev.totalPages - 1, prev.page + 1) }))}
                       disabled={pagination.page >= pagination.totalPages - 1}
-                      className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                      className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 ${pagination.page >= pagination.totalPages - 1 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                     >
                       Next
                     </button>
@@ -851,7 +851,7 @@ export default function AdminUsersPage() {
                     setFormErrors({});
                     setFormTouched({});
                   }}
-                  className="px-4 py-2 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                  className="px-4 py-2 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -880,13 +880,13 @@ export default function AdminUsersPage() {
               <div className="items-center px-4 py-3">
                 <button
                   onClick={confirmBulkAction}
-                  className="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-24 mr-3 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300"
+                  className="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-24 mr-3 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300 cursor-pointer"
                 >
                   Confirm
                 </button>
                 <button
                   onClick={() => setShowConfirmModal({ show: false, action: '', userIds: [], message: '' })}
-                  className="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-24 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                  className="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-24 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer"
                 >
                   Cancel
                 </button>

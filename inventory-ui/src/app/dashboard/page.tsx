@@ -105,7 +105,7 @@ export default function DashboardPage() {
               {/* Logout Button */}
               <button
                 onClick={handleLogout}
-                className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 cursor-pointer"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Logout
@@ -142,7 +142,7 @@ export default function DashboardPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <button
                   onClick={() => router.push('/admin/users')}
-                  className="flex items-center p-4 bg-white border border-blue-200 rounded-md hover:border-blue-300 hover:bg-blue-50 transition-colors duration-200"
+                  className="flex items-center p-4 bg-white border border-blue-200 rounded-md hover:border-blue-300 hover:bg-blue-50 transition-colors duration-200 cursor-pointer"
                 >
                   <Users className="h-6 w-6 text-blue-600 mr-3" />
                   <div className="text-left">
@@ -153,7 +153,7 @@ export default function DashboardPage() {
                 
                 <button
                   onClick={() => router.push('/admin/stores')}
-                  className="flex items-center p-4 bg-white border border-blue-200 rounded-md hover:border-blue-300 hover:bg-blue-50 transition-colors duration-200"
+                  className="flex items-center p-4 bg-white border border-blue-200 rounded-md hover:border-blue-300 hover:bg-blue-50 transition-colors duration-200 cursor-pointer"
                 >
                   <MapPin className="h-6 w-6 text-blue-600 mr-3" />
                   <div className="text-left">
@@ -164,7 +164,7 @@ export default function DashboardPage() {
                 
                 <button
                   onClick={() => toast.info('Feature coming soon')}
-                  className="flex items-center p-4 bg-white border border-blue-200 rounded-md hover:border-blue-300 hover:bg-blue-50 transition-colors duration-200"
+                  className="flex items-center p-4 bg-white border border-blue-200 rounded-md hover:border-blue-300 hover:bg-blue-50 transition-colors duration-200 cursor-pointer"
                 >
                   <Settings className="h-6 w-6 text-blue-600 mr-3" />
                   <div className="text-left">
@@ -175,7 +175,7 @@ export default function DashboardPage() {
                 
                 <button
                   onClick={() => toast.info('Feature coming soon')}
-                  className="flex items-center p-4 bg-white border border-blue-200 rounded-md hover:border-blue-300 hover:bg-blue-50 transition-colors duration-200"
+                  className="flex items-center p-4 bg-white border border-blue-200 rounded-md hover:border-blue-300 hover:bg-blue-50 transition-colors duration-200 cursor-pointer"
                 >
                   <Shield className="h-6 w-6 text-blue-600 mr-3" />
                   <div className="text-left">

@@ -183,7 +183,7 @@ export default function PasswordChangeModal({
               />
               <button
                 type="button"
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
                 onClick={() => setShowCurrentPassword(!showCurrentPassword)}
               >
                 {showCurrentPassword ? (
@@ -217,7 +217,7 @@ export default function PasswordChangeModal({
               />
               <button
                 type="button"
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
                 onClick={() => setShowNewPassword(!showNewPassword)}
               >
                 {showNewPassword ? (
@@ -284,7 +284,7 @@ export default function PasswordChangeModal({
               />
               <button
                 type="button"
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               >
                 {showConfirmPassword ? (
@@ -337,7 +337,7 @@ export default function PasswordChangeModal({
                 reset();
                 clearError();
               }}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors cursor-pointer"
             >
               Cancel
             </button>
@@ -351,7 +351,7 @@ export default function PasswordChangeModal({
               "px-4 py-2 text-sm font-medium text-white rounded-md transition-colors",
               isLoading
                 ? "bg-blue-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700"
+                : "bg-blue-600 hover:bg-blue-700 cursor-pointer"
             )}
           >
             {isLoading ? 'Changing Password...' : 'Change Password'}

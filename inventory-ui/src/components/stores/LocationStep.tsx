@@ -238,7 +238,7 @@ export default function LocationStep({
               type="button"
               onClick={handleDetectLocation}
               disabled={isDetectingLocation}
-              className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 cursor-pointer"
             >
               <MapPin className="h-4 w-4" />
               {isDetectingLocation ? 'Detecting...' : 'Auto-detect Location'}
@@ -330,7 +330,7 @@ export default function LocationStep({
           <button
             type="button"
             onClick={onPrevious}
-            className="inline-flex items-center gap-2 px-6 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="inline-flex items-center gap-2 px-6 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer"
           >
             <ChevronLeft className="h-4 w-4" />
             Previous
@@ -342,7 +342,7 @@ export default function LocationStep({
             className={`
               inline-flex items-center gap-2 px-6 py-2 rounded-md text-sm font-medium transition-colors
               ${isValid && !isSubmitting
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                ? 'bg-blue-600 text-white hover:bg-blue-700 cursor-pointer'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }
             `}

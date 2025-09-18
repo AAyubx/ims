@@ -224,7 +224,7 @@ export default function BasicInfoStep({ form, onNext, defaultValues }: BasicInfo
               className={`
                 inline-flex items-center gap-2 px-8 py-3 rounded-lg text-sm font-semibold transition-all duration-200 shadow-sm
                 ${isValid
-                  ? 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md border border-blue-600'
+                  ? 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md border border-blue-600 cursor-pointer'
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-200'
                 }
               `}
