@@ -61,7 +61,7 @@ export default function StoreDetailsPage() {
           </div>
           <button
             onClick={() => router.back()}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 cursor-pointer"
           >
             Go Back
           </button>
@@ -78,7 +78,7 @@ export default function StoreDetailsPage() {
           <p className="text-gray-600">Store not found</p>
           <button
             onClick={() => router.back()}
-            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 cursor-pointer"
           >
             Go Back
           </button>
@@ -120,7 +120,7 @@ export default function StoreDetailsPage() {
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => router.back()}
-                className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
+                className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 cursor-pointer"
               >
                 <ArrowLeft className="h-5 w-5" />
                 Back to Stores
@@ -135,7 +135,7 @@ export default function StoreDetailsPage() {
               <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(store.status)}`}>
                 {store.status}
               </span>
-              <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm font-medium">
+              <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm font-medium cursor-pointer">
                 <Settings className="h-4 w-4 inline mr-2" />
                 Edit Store
               </button>
@@ -230,7 +230,7 @@ export default function StoreDetailsPage() {
                     href={`https://maps.google.com?q=${store.latitude},${store.longitude}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm"
+                    className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm cursor-pointer"
                   >
                     <Globe className="h-4 w-4" />
                     View on Google Maps
