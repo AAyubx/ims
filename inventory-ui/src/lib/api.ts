@@ -2,7 +2,7 @@ import axios from "axios";
 import { LoginCredentials, LoginResponse, ForgotPasswordRequest, ResetPasswordRequest, ChangePasswordRequest, ApiResponse } from "@/types/auth";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api";
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8082/api";
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
