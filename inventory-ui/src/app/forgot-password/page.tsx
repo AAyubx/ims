@@ -77,7 +77,7 @@ export default function ForgotPasswordPage() {
                     setIsSubmitted(false);
                     setIsLoading(false);
                   }}
-                  className="inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer"
                 >
                   <Mail className="h-4 w-4 mr-2" />
                   Try Another Email
@@ -150,7 +150,7 @@ export default function ForgotPasswordPage() {
                   "group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500",
                   isLoading
                     ? "bg-blue-400 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-700"
+                    : "bg-blue-600 hover:bg-blue-700 cursor-pointer"
                 )}
               >
                 {isLoading ? (
