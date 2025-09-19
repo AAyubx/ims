@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { Users, Settings, Shield, MapPin } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
+import { DateTimeUtil } from '@/utils/dateTime';
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
@@ -39,7 +40,13 @@ export default function DashboardPage() {
                   Login Successful!
                 </h3>
                 <p className="mt-1 text-sm text-green-700">
-                  You have successfully logged into the inventory management system. Use the navigation menu on the left to access different modules.
+                  You have successfully logged into the inventory management system.
+                  {user?.lastLoginAt && (
+                    <><br />{DateTimeUtil.formatLastLoginMessage(user.lastLoginAt)}</>
+                  )}
+                  {!user?.lastLoginAt && (
+                    <><br />Welcome! This is your first login.</>
+                  )}
                 </p>
               </div>
             </div>
@@ -79,7 +86,10 @@ export default function DashboardPage() {
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Last Login</dt>
                     <dd className="mt-1 text-sm text-gray-900">
-                      {new Date(user.lastLoginAt).toLocaleString()}
+                      {(() => {
+                        const { relative, absolute, timezone } = DateTimeUtil.formatLastLogin(user.lastLoginAt);
+                        return `${relative} (${absolute})`;
+                      })()}
                     </dd>
                   </div>
                 )}
