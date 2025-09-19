@@ -52,6 +52,7 @@ public class UserInfoDto {
                 .displayName(principal.getDisplayName())
                 .tenant(tenantDto)
                 .roles(roleDtos)
+                .lastLoginAt(principal.getLastLoginAt())
                 .accountStatus("ACTIVE")
                 .build();
     }
