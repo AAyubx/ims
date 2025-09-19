@@ -30,6 +30,7 @@ public class UserPrincipal implements UserDetails {
     private LocalDateTime passwordExpiresAt;
     private int failedLoginAttempts;
     private LocalDateTime accountLockedUntil;
+    private LocalDateTime lastLoginAt;
     private Collection<? extends GrantedAuthority> authorities;
 
     public static UserPrincipal create(UserAccount user) {
@@ -49,6 +50,7 @@ public class UserPrincipal implements UserDetails {
                 user.getPasswordExpiresAt(),
                 user.getFailedLoginAttempts(),
                 user.getAccountLockedUntil(),
+                user.getLastLoginAt(),
                 authorities
         );
     }
