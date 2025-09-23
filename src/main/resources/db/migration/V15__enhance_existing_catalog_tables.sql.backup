@@ -1,0 +1,249 @@
+-- V15__enhance_existing_catalog_tables.sql
+-- Enhance existing catalog tables for Item Master requirements
+-- Generated: 2025-09-23
+
+-- Enhance category table - Add columns if they don't exist
+SET @stmt = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='category' AND COLUMN_NAME='department_id') = 0, 'ALTER TABLE category ADD COLUMN department_id BIGINT AFTER tenant_id', 'SELECT ''Column department_id already exists'' AS message');
+PREPARE stmt FROM @stmt; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @stmt = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='category' AND COLUMN_NAME='description') = 0, 'ALTER TABLE category ADD COLUMN description TEXT AFTER name', 'SELECT ''Column description already exists'' AS message');
+PREPARE stmt FROM @stmt; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @stmt = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='category' AND COLUMN_NAME='tax_class_default') = 0, 'ALTER TABLE category ADD COLUMN tax_class_default VARCHAR(32) AFTER parent_id', 'SELECT ''Column tax_class_default already exists'' AS message');
+PREPARE stmt FROM @stmt; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @stmt = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='category' AND COLUMN_NAME='is_leaf') = 0, 'ALTER TABLE category ADD COLUMN is_leaf BOOLEAN NOT NULL DEFAULT TRUE AFTER tax_class_default', 'SELECT ''Column is_leaf already exists'' AS message');
+PREPARE stmt FROM @stmt; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @stmt = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='category' AND COLUMN_NAME='sort_order') = 0, 'ALTER TABLE category ADD COLUMN sort_order INT NOT NULL DEFAULT 0 AFTER is_leaf', 'SELECT ''Column sort_order already exists'' AS message');
+PREPARE stmt FROM @stmt; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @stmt = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='category' AND COLUMN_NAME='created_by') = 0, 'ALTER TABLE category ADD COLUMN created_by BIGINT AFTER updated_at', 'SELECT ''Column created_by already exists'' AS message');
+PREPARE stmt FROM @stmt; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @stmt = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='category' AND COLUMN_NAME='updated_by') = 0, 'ALTER TABLE category ADD COLUMN updated_by BIGINT AFTER created_by', 'SELECT ''Column updated_by already exists'' AS message');
+PREPARE stmt FROM @stmt; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- Add foreign key constraints for category
+ALTER TABLE category ADD CONSTRAINT fk_cat_department FOREIGN KEY (department_id) REFERENCES department(id) ON DELETE SET NULL;
+ALTER TABLE category ADD CONSTRAINT fk_cat_created_by FOREIGN KEY (created_by) REFERENCES user_account(id) ON DELETE SET NULL;
+ALTER TABLE category ADD CONSTRAINT fk_cat_updated_by FOREIGN KEY (updated_by) REFERENCES user_account(id) ON DELETE SET NULL;
+
+-- Add indexes for category
+CREATE INDEX idx_cat_department ON category(department_id);
+CREATE INDEX idx_cat_parent ON category(parent_id);
+CREATE INDEX idx_cat_leaf ON category(is_leaf);
+
+-- Enhance item table (parent level)
+ALTER TABLE item ADD COLUMN short_name VARCHAR(128) AFTER name;
+ALTER TABLE item ADD COLUMN description TEXT AFTER short_name;
+ALTER TABLE item ADD COLUMN department_id BIGINT AFTER category_id;
+ALTER TABLE item ADD COLUMN brand_id BIGINT AFTER department_id;
+ALTER TABLE item ADD COLUMN item_type VARCHAR(32) NOT NULL DEFAULT 'SIMPLE' AFTER brand_id; -- SIMPLE, PARENT, BUNDLE, KIT
+ALTER TABLE item ADD COLUMN base_uom_id BIGINT AFTER item_type;
+ALTER TABLE item ADD COLUMN sell_uom_id BIGINT AFTER base_uom_id;
+ALTER TABLE item ADD COLUMN buy_uom_id BIGINT AFTER sell_uom_id;
+ALTER TABLE item ADD COLUMN tax_class VARCHAR(32) AFTER buy_uom_id;
+ALTER TABLE item ADD COLUMN hs_code VARCHAR(32) AFTER tax_class;
+ALTER TABLE item ADD COLUMN country_of_origin CHAR(2) AFTER hs_code;
+ALTER TABLE item ADD COLUMN is_serialized BOOLEAN NOT NULL DEFAULT FALSE AFTER country_of_origin;
+ALTER TABLE item ADD COLUMN is_lot_tracked BOOLEAN NOT NULL DEFAULT FALSE AFTER is_serialized;
+ALTER TABLE item ADD COLUMN shelf_life_days INT AFTER is_lot_tracked;
+ALTER TABLE item ADD COLUMN safety_stock_default INT NOT NULL DEFAULT 0 AFTER shelf_life_days;
+ALTER TABLE item ADD COLUMN reorder_point_default INT NOT NULL DEFAULT 0 AFTER safety_stock_default;
+ALTER TABLE item ADD COLUMN reorder_quantity_default INT NOT NULL DEFAULT 0 AFTER reorder_point_default;
+ALTER TABLE item ADD COLUMN standard_cost DECIMAL(12,4) AFTER reorder_quantity_default;
+ALTER TABLE item ADD COLUMN last_cost DECIMAL(12,4) AFTER standard_cost;
+ALTER TABLE item ADD COLUMN average_cost DECIMAL(12,4) AFTER last_cost;
+ALTER TABLE item ADD COLUMN base_price DECIMAL(12,4) AFTER average_cost;
+ALTER TABLE item ADD COLUMN meta_title VARCHAR(255) AFTER base_price;
+ALTER TABLE item ADD COLUMN meta_description TEXT AFTER meta_title;
+ALTER TABLE item ADD COLUMN search_keywords TEXT AFTER meta_description;
+ALTER TABLE item ADD COLUMN created_by BIGINT AFTER updated_at;
+ALTER TABLE item ADD COLUMN updated_by BIGINT AFTER created_by;
+
+-- Add foreign key constraints for item
+ALTER TABLE item ADD CONSTRAINT fk_item_department FOREIGN KEY (department_id) REFERENCES department(id) ON DELETE SET NULL;
+ALTER TABLE item ADD CONSTRAINT fk_item_brand FOREIGN KEY (brand_id) REFERENCES brand(id) ON DELETE SET NULL;
+ALTER TABLE item ADD CONSTRAINT fk_item_base_uom FOREIGN KEY (base_uom_id) REFERENCES unit_of_measure(id) ON DELETE SET NULL;
+ALTER TABLE item ADD CONSTRAINT fk_item_sell_uom FOREIGN KEY (sell_uom_id) REFERENCES unit_of_measure(id) ON DELETE SET NULL;
+ALTER TABLE item ADD CONSTRAINT fk_item_buy_uom FOREIGN KEY (buy_uom_id) REFERENCES unit_of_measure(id) ON DELETE SET NULL;
+ALTER TABLE item ADD CONSTRAINT fk_item_created_by FOREIGN KEY (created_by) REFERENCES user_account(id) ON DELETE SET NULL;
+ALTER TABLE item ADD CONSTRAINT fk_item_updated_by FOREIGN KEY (updated_by) REFERENCES user_account(id) ON DELETE SET NULL;
+
+-- Add indexes for item
+CREATE INDEX idx_item_department ON item(department_id);
+CREATE INDEX idx_item_brand ON item(brand_id);
+CREATE INDEX idx_item_type ON item(item_type);
+CREATE INDEX idx_item_status_type ON item(status, item_type);
+CREATE FULLTEXT INDEX idx_item_search ON item(name, short_name, brand, search_keywords);
+
+-- Enhance item_variant table
+ALTER TABLE item_variant ADD COLUMN name VARCHAR(255) AFTER variant_sku;
+ALTER TABLE item_variant ADD COLUMN short_name VARCHAR(128) AFTER name;
+ALTER TABLE item_variant ADD COLUMN upc VARCHAR(64) AFTER short_name;
+ALTER TABLE item_variant ADD COLUMN ean VARCHAR(64) AFTER upc;
+ALTER TABLE item_variant ADD COLUMN gtin VARCHAR(64) AFTER ean;
+ALTER TABLE item_variant ADD COLUMN base_uom_id BIGINT AFTER gtin;
+ALTER TABLE item_variant ADD COLUMN sell_uom_id BIGINT AFTER base_uom_id;
+ALTER TABLE item_variant ADD COLUMN buy_uom_id BIGINT AFTER sell_uom_id;
+ALTER TABLE item_variant ADD COLUMN weight_value DECIMAL(10,3) AFTER buy_uom_id;
+ALTER TABLE item_variant ADD COLUMN weight_uom_id BIGINT AFTER weight_value;
+ALTER TABLE item_variant ADD COLUMN volume_value DECIMAL(10,3) AFTER weight_uom_id;
+ALTER TABLE item_variant ADD COLUMN volume_uom_id BIGINT AFTER volume_value;
+ALTER TABLE item_variant ADD COLUMN length_value DECIMAL(10,3) AFTER volume_uom_id;
+ALTER TABLE item_variant ADD COLUMN width_value DECIMAL(10,3) AFTER length_value;
+ALTER TABLE item_variant ADD COLUMN height_value DECIMAL(10,3) AFTER width_value;
+ALTER TABLE item_variant ADD COLUMN dimension_uom_id BIGINT AFTER height_value;
+ALTER TABLE item_variant ADD COLUMN tax_class VARCHAR(32) AFTER dimension_uom_id;
+ALTER TABLE item_variant ADD COLUMN hs_code VARCHAR(32) AFTER tax_class;
+ALTER TABLE item_variant ADD COLUMN country_of_origin CHAR(2) AFTER hs_code;
+ALTER TABLE item_variant ADD COLUMN is_serialized BOOLEAN NOT NULL DEFAULT FALSE AFTER country_of_origin;
+ALTER TABLE item_variant ADD COLUMN is_lot_tracked BOOLEAN NOT NULL DEFAULT FALSE AFTER is_serialized;
+ALTER TABLE item_variant ADD COLUMN shelf_life_days INT AFTER is_lot_tracked;
+ALTER TABLE item_variant ADD COLUMN standard_cost DECIMAL(12,4) AFTER shelf_life_days;
+ALTER TABLE item_variant ADD COLUMN last_cost DECIMAL(12,4) AFTER standard_cost;
+ALTER TABLE item_variant ADD COLUMN average_cost DECIMAL(12,4) AFTER last_cost;
+ALTER TABLE item_variant ADD COLUMN base_price DECIMAL(12,4) AFTER average_cost;
+ALTER TABLE item_variant ADD COLUMN is_active_for_sale BOOLEAN NOT NULL DEFAULT TRUE AFTER base_price;
+ALTER TABLE item_variant ADD COLUMN is_active_for_purchase BOOLEAN NOT NULL DEFAULT TRUE AFTER is_active_for_sale;
+ALTER TABLE item_variant ADD COLUMN created_by BIGINT AFTER updated_at;
+ALTER TABLE item_variant ADD COLUMN updated_by BIGINT AFTER created_by;
+
+-- Add foreign key constraints for item_variant
+ALTER TABLE item_variant ADD CONSTRAINT fk_variant_base_uom FOREIGN KEY (base_uom_id) REFERENCES unit_of_measure(id) ON DELETE SET NULL;
+ALTER TABLE item_variant ADD CONSTRAINT fk_variant_sell_uom FOREIGN KEY (sell_uom_id) REFERENCES unit_of_measure(id) ON DELETE SET NULL;
+ALTER TABLE item_variant ADD CONSTRAINT fk_variant_buy_uom FOREIGN KEY (buy_uom_id) REFERENCES unit_of_measure(id) ON DELETE SET NULL;
+ALTER TABLE item_variant ADD CONSTRAINT fk_variant_weight_uom FOREIGN KEY (weight_uom_id) REFERENCES unit_of_measure(id) ON DELETE SET NULL;
+ALTER TABLE item_variant ADD CONSTRAINT fk_variant_volume_uom FOREIGN KEY (volume_uom_id) REFERENCES unit_of_measure(id) ON DELETE SET NULL;
+ALTER TABLE item_variant ADD CONSTRAINT fk_variant_dimension_uom FOREIGN KEY (dimension_uom_id) REFERENCES unit_of_measure(id) ON DELETE SET NULL;
+ALTER TABLE item_variant ADD CONSTRAINT fk_variant_created_by FOREIGN KEY (created_by) REFERENCES user_account(id) ON DELETE SET NULL;
+ALTER TABLE item_variant ADD CONSTRAINT fk_variant_updated_by FOREIGN KEY (updated_by) REFERENCES user_account(id) ON DELETE SET NULL;
+
+-- Add indexes for item_variant
+CREATE INDEX idx_variant_upc ON item_variant(upc);
+CREATE INDEX idx_variant_ean ON item_variant(ean);
+CREATE INDEX idx_variant_gtin ON item_variant(gtin);
+CREATE INDEX idx_variant_status_active ON item_variant(status, is_active_for_sale, is_active_for_purchase);
+CREATE FULLTEXT INDEX idx_variant_search ON item_variant(name, short_name, variant_sku);
+
+-- Create sample data for demo tenant
+-- Insert sample departments
+INSERT INTO department (tenant_id, code, name, description, tax_class_default, created_by) 
+SELECT t.id, 'APPAREL', 'Apparel & Fashion', 'Clothing, footwear, and fashion accessories', 'STANDARD', u.id
+FROM tenant t 
+JOIN user_account u ON u.tenant_id = t.id AND u.email = 'admin@demo.example'
+WHERE t.code = 'demo';
+
+INSERT INTO department (tenant_id, code, name, description, tax_class_default, created_by) 
+SELECT t.id, 'ELECTRONICS', 'Electronics', 'Electronic devices and accessories', 'ELECTRONICS', u.id
+FROM tenant t 
+JOIN user_account u ON u.tenant_id = t.id AND u.email = 'admin@demo.example'
+WHERE t.code = 'demo';
+
+INSERT INTO department (tenant_id, code, name, description, tax_class_default, created_by) 
+SELECT t.id, 'BEAUTY', 'Beauty & Personal Care', 'Cosmetics, skincare, and personal care products', 'COSMETICS', u.id
+FROM tenant t 
+JOIN user_account u ON u.tenant_id = t.id AND u.email = 'admin@demo.example'
+WHERE t.code = 'demo';
+
+INSERT INTO department (tenant_id, code, name, description, tax_class_default, created_by) 
+SELECT t.id, 'HOME', 'Home & Garden', 'Home décor, furniture, and garden supplies', 'STANDARD', u.id
+FROM tenant t 
+JOIN user_account u ON u.tenant_id = t.id AND u.email = 'admin@demo.example'
+WHERE t.code = 'demo';
+
+-- Insert sample brands
+INSERT INTO brand (tenant_id, code, name, description, created_by) 
+SELECT t.id, 'NIKE', 'Nike', 'Athletic footwear and apparel', u.id
+FROM tenant t 
+JOIN user_account u ON u.tenant_id = t.id AND u.email = 'admin@demo.example'
+WHERE t.code = 'demo';
+
+INSERT INTO brand (tenant_id, code, name, description, created_by) 
+SELECT t.id, 'ADIDAS', 'Adidas', 'Sports clothing and accessories', u.id
+FROM tenant t 
+JOIN user_account u ON u.tenant_id = t.id AND u.email = 'admin@demo.example'
+WHERE t.code = 'demo';
+
+INSERT INTO brand (tenant_id, code, name, description, created_by) 
+SELECT t.id, 'APPLE', 'Apple', 'Consumer electronics and technology', u.id
+FROM tenant t 
+JOIN user_account u ON u.tenant_id = t.id AND u.email = 'admin@demo.example'
+WHERE t.code = 'demo';
+
+INSERT INTO brand (tenant_id, code, name, description, created_by) 
+SELECT t.id, 'LOREAL', 'L''Oréal', 'Beauty and cosmetics products', u.id
+FROM tenant t 
+JOIN user_account u ON u.tenant_id = t.id AND u.email = 'admin@demo.example'
+WHERE t.code = 'demo';
+
+-- Update existing categories with department associations
+UPDATE category SET 
+    department_id = (SELECT id FROM department WHERE tenant_id = category.tenant_id AND code = 'APPAREL'),
+    description = 'Footwear for all occasions',
+    tax_class_default = 'STANDARD'
+WHERE code = 'FOOTWEAR' AND tenant_id = (SELECT id FROM tenant WHERE code = 'demo');
+
+UPDATE category SET 
+    department_id = (SELECT id FROM department WHERE tenant_id = category.tenant_id AND code = 'ELECTRONICS'),
+    description = 'Consumer electronic devices',
+    tax_class_default = 'ELECTRONICS'
+WHERE code = 'ELECTRONICS' AND tenant_id = (SELECT id FROM tenant WHERE code = 'demo');
+
+-- Insert additional sample categories
+INSERT INTO category (tenant_id, department_id, code, name, description, tax_class_default, created_by) 
+SELECT t.id, d.id, 'SNEAKERS', 'Sneakers', 'Athletic and casual sneakers', 'STANDARD', u.id
+FROM tenant t 
+JOIN department d ON d.tenant_id = t.id AND d.code = 'APPAREL'
+JOIN user_account u ON u.tenant_id = t.id AND u.email = 'admin@demo.example'
+WHERE t.code = 'demo';
+
+INSERT INTO category (tenant_id, department_id, code, name, description, tax_class_default, created_by) 
+SELECT t.id, d.id, 'SMARTPHONES', 'Smartphones', 'Mobile phones and accessories', 'ELECTRONICS', u.id
+FROM tenant t 
+JOIN department d ON d.tenant_id = t.id AND d.code = 'ELECTRONICS'
+JOIN user_account u ON u.tenant_id = t.id AND u.email = 'admin@demo.example'
+WHERE t.code = 'demo';
+
+INSERT INTO category (tenant_id, department_id, code, name, description, tax_class_default, created_by) 
+SELECT t.id, d.id, 'LIPSTICK', 'Lipstick', 'Lip color and care products', 'COSMETICS', u.id
+FROM tenant t 
+JOIN department d ON d.tenant_id = t.id AND d.code = 'BEAUTY'
+JOIN user_account u ON u.tenant_id = t.id AND u.email = 'admin@demo.example'
+WHERE t.code = 'demo';
+
+-- Set up attribute sets for categories
+-- Color and Size for Sneakers
+INSERT INTO attribute_set (tenant_id, category_id, attribute_definition_id, is_required_for_variants, display_order, created_by)
+SELECT t.id, c.id, a.id, TRUE, 1, u.id
+FROM tenant t
+JOIN category c ON c.tenant_id = t.id AND c.code = 'SNEAKERS'
+JOIN attribute_definition a ON a.tenant_id = t.id AND a.code = 'COLOR'
+JOIN user_account u ON u.tenant_id = t.id AND u.email = 'admin@demo.example'
+WHERE t.code = 'demo';
+
+INSERT INTO attribute_set (tenant_id, category_id, attribute_definition_id, is_required_for_variants, display_order, created_by)
+SELECT t.id, c.id, a.id, TRUE, 2, u.id
+FROM tenant t
+JOIN category c ON c.tenant_id = t.id AND c.code = 'SNEAKERS'
+JOIN attribute_definition a ON a.tenant_id = t.id AND a.code = 'SIZE'
+JOIN user_account u ON u.tenant_id = t.id AND u.email = 'admin@demo.example'
+WHERE t.code = 'demo';
+
+INSERT INTO attribute_set (tenant_id, category_id, attribute_definition_id, is_required_for_variants, display_order, created_by)
+SELECT t.id, c.id, a.id, FALSE, 3, u.id
+FROM tenant t
+JOIN category c ON c.tenant_id = t.id AND c.code = 'SNEAKERS'
+JOIN attribute_definition a ON a.tenant_id = t.id AND a.code = 'GENDER'
+JOIN user_account u ON u.tenant_id = t.id AND u.email = 'admin@demo.example'
+WHERE t.code = 'demo';
+
+-- Color for Lipstick
+INSERT INTO attribute_set (tenant_id, category_id, attribute_definition_id, is_required_for_variants, display_order, created_by)
+SELECT t.id, c.id, a.id, TRUE, 1, u.id
+FROM tenant t
+JOIN category c ON c.tenant_id = t.id AND c.code = 'LIPSTICK'
+JOIN attribute_definition a ON a.tenant_id = t.id AND a.code = 'COLOR'
+JOIN user_account u ON u.tenant_id = t.id AND u.email = 'admin@demo.example'
+WHERE t.code = 'demo';

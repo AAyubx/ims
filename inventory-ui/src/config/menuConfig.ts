@@ -16,7 +16,8 @@ import {
   PieChart,
   Download,
   Shield,
-  Store
+  Store,
+  Award
 } from 'lucide-react';
 
 import { MenuItem } from '@/components/navigation/NavigationItem';
@@ -79,10 +80,24 @@ export const MENU_CONFIG: MenuItem[] = [
         requiredRoles: ['ADMIN', 'MANAGER', 'CLERK']
       },
       {
+        id: 'departments',
+        label: 'Departments',
+        icon: Store,
+        href: '/catalog/departments',
+        requiredRoles: ['ADMIN', 'MANAGER']
+      },
+      {
         id: 'categories',
         label: 'Categories',
         icon: Tags,
         href: '/catalog/categories',
+        requiredRoles: ['ADMIN', 'MANAGER']
+      },
+      {
+        id: 'brands',
+        label: 'Brands',
+        icon: Award,
+        href: '/catalog/brands',
         requiredRoles: ['ADMIN', 'MANAGER']
       },
       {
