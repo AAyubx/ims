@@ -190,7 +190,7 @@ export default function NewItemPage() {
                 name="sku"
                 value={form.sku}
                 onChange={handleChange}
-                className={`mt-1 block w-full rounded-md shadow-sm ${
+                className={`mt-1 block w-full rounded-md shadow-sm text-gray-900 placeholder-gray-500 px-3 py-2 ${
                   errors.sku 
                     ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
                     : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
@@ -213,7 +213,7 @@ export default function NewItemPage() {
                 name="name"
                 value={form.name}
                 onChange={handleChange}
-                className={`mt-1 block w-full rounded-md shadow-sm ${
+                className={`mt-1 block w-full rounded-md shadow-sm text-gray-900 placeholder-gray-500 px-3 py-2 ${
                   errors.name 
                     ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
                     : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
@@ -236,7 +236,7 @@ export default function NewItemPage() {
                 name="shortName"
                 value={form.shortName}
                 onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-900 placeholder-gray-500 px-3 py-2"
                 placeholder="Enter short name"
               />
             </div>
@@ -251,7 +251,7 @@ export default function NewItemPage() {
                 name="itemType"
                 value={form.itemType}
                 onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-900 px-3 py-2"
               >
                 {itemTypes.map(type => (
                   <option key={type.value} value={type.value}>
@@ -271,7 +271,7 @@ export default function NewItemPage() {
                 name="departmentId"
                 value={form.departmentId}
                 onChange={handleChange}
-                className={`mt-1 block w-full rounded-md shadow-sm ${
+                className={`mt-1 block w-full rounded-md shadow-sm text-gray-900 px-3 py-2 ${
                   errors.departmentId 
                     ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
                     : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
@@ -300,11 +300,11 @@ export default function NewItemPage() {
                 value={form.categoryId}
                 onChange={handleChange}
                 disabled={!form.departmentId}
-                className={`mt-1 block w-full rounded-md shadow-sm ${
+                className={`mt-1 block w-full rounded-md shadow-sm text-gray-900 px-3 py-2 ${
                   errors.categoryId 
                     ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
                     : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
-                } ${!form.departmentId ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                } ${!form.departmentId ? 'bg-gray-100 cursor-not-allowed text-gray-500' : ''}`}
               >
                 <option value="">Select Category</option>
                 {filteredCategories.map(cat => (
@@ -328,7 +328,7 @@ export default function NewItemPage() {
                 name="brandId"
                 value={form.brandId}
                 onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-900 px-3 py-2"
               >
                 <option value="">Select Brand</option>
                 {brands.map(brand => (
@@ -354,7 +354,7 @@ export default function NewItemPage() {
                   name="basePrice"
                   value={form.basePrice}
                   onChange={handleChange}
-                  className={`block w-full pl-7 pr-3 rounded-md shadow-sm ${
+                  className={`block w-full pl-7 pr-3 py-2 rounded-md shadow-sm text-gray-900 placeholder-gray-500 ${
                     errors.basePrice 
                       ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
                       : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
@@ -379,7 +379,7 @@ export default function NewItemPage() {
               value={form.description}
               onChange={handleChange}
               rows={3}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-900 placeholder-gray-500 px-3 py-2"
               placeholder="Enter item description"
             />
           </div>

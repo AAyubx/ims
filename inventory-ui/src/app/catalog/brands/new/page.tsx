@@ -167,7 +167,7 @@ export default function NewBrandPage() {
                 value={form.code}
                 onChange={handleChange}
                 placeholder="e.g., APPLE, SAMSUNG, NIKE"
-                className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm ${
+                className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm text-gray-900 placeholder-gray-500 px-3 py-2 ${
                   errors.code ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
                 }`}
               />
@@ -191,7 +191,7 @@ export default function NewBrandPage() {
                 value={form.name}
                 onChange={handleChange}
                 placeholder="e.g., Apple, Samsung, Nike"
-                className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm ${
+                className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm text-gray-900 placeholder-gray-500 px-3 py-2 ${
                   errors.name ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
                 }`}
               />
@@ -213,7 +213,7 @@ export default function NewBrandPage() {
               value={form.description}
               onChange={handleChange}
               placeholder="Brief description of the brand..."
-              className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm ${
+              className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm text-gray-900 placeholder-gray-500 px-3 py-2 ${
                 errors.description ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
               }`}
             />
@@ -238,7 +238,7 @@ export default function NewBrandPage() {
                 value={form.vendor}
                 onChange={handleChange}
                 placeholder="e.g., Apple Inc., Samsung Electronics"
-                className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm ${
+                className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm text-gray-900 placeholder-gray-500 px-3 py-2 ${
                   errors.vendor ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
                 }`}
               />
@@ -262,7 +262,7 @@ export default function NewBrandPage() {
                 value={form.logoUrl}
                 onChange={handleChange}
                 placeholder="https://example.com/logo.png"
-                className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm ${
+                className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm text-gray-900 placeholder-gray-500 px-3 py-2 ${
                   errors.logoUrl ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
                 }`}
               />

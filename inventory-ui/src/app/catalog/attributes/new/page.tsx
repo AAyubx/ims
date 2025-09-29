@@ -186,7 +186,7 @@ export default function NewAttributePage() {
                 name="code"
                 value={form.code}
                 onChange={handleChange}
-                className={`mt-1 block w-full rounded-md shadow-sm ${
+                className={`mt-1 block w-full rounded-md shadow-sm text-gray-900 placeholder-gray-500 px-3 py-2 ${
                   errors.code 
                     ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
                     : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
@@ -213,7 +213,7 @@ export default function NewAttributePage() {
                 name="name"
                 value={form.name}
                 onChange={handleChange}
-                className={`mt-1 block w-full rounded-md shadow-sm ${
+                className={`mt-1 block w-full rounded-md shadow-sm text-gray-900 placeholder-gray-500 px-3 py-2 ${
                   errors.name 
                     ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
                     : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
@@ -235,7 +235,7 @@ export default function NewAttributePage() {
                 name="dataType"
                 value={form.dataType}
                 onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-gray-900 px-3 py-2"
               >
                 {dataTypes.map(type => (
                   <option key={type.value} value={type.value}>
@@ -272,7 +272,7 @@ export default function NewAttributePage() {
               value={form.description}
               onChange={handleChange}
               rows={3}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-gray-900 placeholder-gray-500 px-3 py-2"
               placeholder="Describe what this attribute represents"
             />
           </div>
@@ -290,7 +290,7 @@ export default function NewAttributePage() {
                     value={newAllowedValue}
                     onChange={(e) => setNewAllowedValue(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-gray-900 placeholder-gray-500 px-3 py-2"
                     placeholder="Enter a value and press Enter"
                   />
                   <button

@@ -1,24 +1,26 @@
 # Item Master & Catalog Management Development Plan
 
-_Last updated: 2025-09-23_
+_Last updated: 2025-09-29_
 
-## 🚧 Implementation Progress: 90% Complete (Near Production Ready)
+## 🚧 Implementation Progress: 75% Complete (Barcode Management System Added)
 
-**Current Status**: **Core System Functional** - Database, Backend APIs, and UI Pages Operational  
-**Next Phase**: Final Testing & Production Readiness  
-**Major Milestone**: September 23, 2025 - Add functionality completed
+**Current Status**: **Core Foundation + Barcode Management Complete** - Database, Basic APIs, Form Pages, and Full Barcode System Built  
+**Next Phase**: Advanced Component Implementation & Remaining API Integration  
+**Major Milestone**: September 29, 2025 - Barcode Management System fully implemented and integrated
 
 ### 📊 Development Progress Overview
 
 | Phase | Status | Completion | Target Week | Dependencies |
 |-------|--------|------------|-------------|--------------|
 | **Foundation & Planning** | ✅ **COMPLETE** | 100% | ✅ Done | Requirements analysis complete |
-| **Core Item Master** | ✅ **COMPLETE** | 100% | ✅ Done | Database schema and entities functional |
-| **Category & Brand Management** | ✅ **COMPLETE** | 100% | ✅ Done | UI pages and create forms operational |
-| **Variant & Attribute System** | ✅ **COMPLETE** | 100% | ✅ Done | Schema and create forms operational |
-| **Advanced Features & Integration** | ⏳ **IN PROGRESS** | 70% | Week 10-12 | Core CRUD functionality operational |
+| **Core Item Master** | ✅ **COMPLETE** | 95% | ✅ Done | Database schema and entities functional, basic forms built |
+| **Category & Brand Management** | ⚠️ **PARTIAL** | 70% | Week 2-3 | UI forms built, missing tree view and advanced features |
+| **Variant & Attribute System** | ✅ **COMPLETE** | 85% | ✅ Week 4 | Basic attribute forms built, **BARCODE MANAGEMENT COMPLETE** |
+| **Advanced Features & Integration** | ⚠️ **PARTIAL** | 35% | Week 4-6 | **✅ Barcode system complete**, missing media management, supplier integration, search |
 
-### ✅ Major Accomplishments Completed (Sept 23, 2025)
+### ✅ Major Accomplishments Completed 
+
+#### 🏗️ **Foundation Complete (Sept 23, 2025)**
 
 **🏗️ Database Schema Implementation**
 - ✅ **V21-V27 Migrations**: Complete schema alignment with entities achieved
@@ -36,14 +38,14 @@ _Last updated: 2025-09-23_
 - ✅ **Application Startup**: Spring Boot application starting successfully
 
 **🎨 Frontend UI Implementation**
-- ✅ **Catalog Pages**: Items, Categories, Brands, Departments, Attributes pages functional
-- ✅ **Create Forms**: All `/new` pages for adding Items, Categories, Brands, Departments, Attributes operational
-- ✅ **Add Button Functionality**: 404 errors fixed, create forms accessible from all catalog pages
-- ✅ **React Components**: All major UI components built and operational
+- ✅ **Catalog Pages**: Items, Categories, Brands, Departments, Attributes list pages with basic mock data
+- ✅ **Create Forms**: All `/new` pages for adding Items, Categories, Brands, Departments, Attributes built (forms not functional)
+- ⚠️ **Add Button Functionality**: Create buttons built but not connected to backend APIs
+- ⚠️ **React Components**: Basic form components built, missing advanced components (CategoryTree, VariantMatrix, BarcodeGenerator, MediaUploader, etc.)
 - ✅ **Icon Dependencies**: Heroicons properly installed and configured
 - ✅ **HTML Structure**: All hydration errors and invalid HTML structure fixed
 - ✅ **Navigation**: Catalog module fully accessible and functional
-- ✅ **Error Handling**: Frontend errors resolved, dependencies satisfied
+- ⚠️ **Error Handling**: Frontend errors resolved, but API integration missing
 
 **🔧 Technical Infrastructure**
 - ✅ **Package Dependencies**: All required npm packages installed
@@ -51,17 +53,89 @@ _Last updated: 2025-09-23_
 - ✅ **Code Quality**: TypeScript compilation successful
 - ✅ **Performance**: Application loading and responding properly
 
-### 🎯 Current Development Focus (85% Complete)
-- ✅ Core catalog management system operational
-- ✅ All major UI pages functional and accessible
-- ⏳ Final polishing and optimization
-- ⏳ Documentation updates and user guides
+#### 🏆 **Barcode Management System Complete (Sept 29, 2025)**
 
-### 🚀 Final Sprint Priorities (Week 12)
-1. **Performance Optimization**: Fine-tune query performance and UI responsiveness
-2. **User Testing**: Conduct end-to-end testing of all catalog workflows
-3. **Documentation**: Update user guides and technical documentation
-4. **Production Readiness**: Final deployment preparation and monitoring setup
+**📊 Database & Backend (Week 4 - Days 16-17)**
+- ✅ **V28-V30 Migrations**: Complete barcode schema with MySQL 8 compliance
+- ✅ **ItemBarcode Entity**: Full JPA entity with business logic and validation
+- ✅ **GS1Configuration Entity**: GTIN allocation and capacity management
+- ✅ **Enum Classes**: BarcodeType, PackLevel, BarcodeStatus with business rules
+- ✅ **Repository Layer**: ItemBarcodeRepository, GS1ConfigurationRepository with custom queries
+- ✅ **BarcodeValidationService**: GTIN check digit validation with Mod-10 algorithm
+- ✅ **BarcodeGeneratorService**: Auto-generation for all barcode types with GS1 standards
+- ✅ **ItemBarcodeService**: Complete lifecycle management with primary barcode logic
+
+**🌐 REST API Layer (Week 4 - Day 18)**
+- ✅ **BarcodeController**: Full CRUD operations with comprehensive endpoints
+- ✅ **DTO Classes**: CreateBarcodeRequest, UpdateBarcodeRequest, GenerateBarcodeRequest, BarcodeResponseDto
+- ✅ **Exception Handling**: Custom barcode validation and conflict exceptions
+- ✅ **API Integration**: Tenant-scoped operations with proper security
+- ✅ **Bulk Operations**: Generate multiple barcodes, batch status updates
+
+**🎨 Frontend Components (Week 4 - Day 19)**
+- ✅ **BarcodeGenerator**: Modal component with auto-generation and manual entry modes
+- ✅ **Real-time Validation**: Format checking, duplicate detection, check digit calculation
+- ✅ **BarcodeManager**: Complete table with status management, bulk operations, primary barcode handling
+- ✅ **Visual Feedback**: Color-coded status indicators, loading states, error handling
+- ✅ **UX Design**: Responsive design with mobile-friendly interface
+
+**🔗 Integration Complete (Week 4 - Day 20)**
+- ✅ **Item Detail Page**: Enhanced with dedicated Barcodes tab and Quick Actions
+- ✅ **Variant Selection**: Per-variant barcode management with visual variant picker
+- ✅ **Navigation Flow**: Item Master → Barcodes → Select Variant → Generate/Manual/Skip
+- ✅ **End-to-End Testing**: Complete user workflow from item creation to barcode management
+
+### 🎯 Current Development Focus (75% Complete - Updated Reality)
+
+**✅ COMPLETED:**
+- ✅ Database schema and entity relationships
+- ✅ Basic CRUD form pages (Items, Departments, Categories, Brands, Attributes)
+- ✅ Backend controllers with basic CRUD operations
+- ✅ Form validation and UI styling
+- ✅ **🏆 COMPLETE BARCODE MANAGEMENT SYSTEM** (Week 4 - Days 16-20)
+- ✅ **ItemBarcode Entity & Database Schema** with GS1 compliance
+- ✅ **BarcodeController REST APIs** with full CRUD operations
+- ✅ **BarcodeGenerator & BarcodeManager Components** with real-time validation
+- ✅ **Item Detail Page Integration** with Barcodes tab and per-variant management
+
+**⚠️ PARTIALLY COMPLETED:**
+- ⚠️ Frontend forms built but not functional (mock API calls) - except barcode system
+- ⚠️ Basic list pages with mock data only
+
+**❌ NOT IMPLEMENTED:**
+- ❌ **Week 2**: CategoryTree, AttributeSetManager components
+- ❌ **Week 3**: ItemWizard, VariantMatrix, VariantForm components  
+- ❌ **Week 4**: ~~BarcodeGenerator~~ ✅, MediaUploader components
+- ❌ **Week 5**: SupplierItemForm, procurement features
+- ❌ **Week 6**: CatalogSearch, ImportWizard, bulk operations
+- ❌ API integration between frontend and backend (except barcode APIs)
+- ❌ Advanced search and filtering
+- ❌ Media management system
+- ❌ ~~Barcode management~~ ✅ **COMPLETE**
+- ❌ Supplier integration
+
+### 🚀 IMMEDIATE PRIORITIES (Before Week 7)
+
+**🔴 CRITICAL - WEEK 2-3 MISSING COMPONENTS:**
+1. **CategoryTree Component**: Hierarchical tree view for category management
+2. **AttributeSetManager**: Category-attribute association interface  
+3. **ItemWizard**: Multi-step item creation process
+4. **VariantMatrix**: Matrix view for bulk variant creation
+
+**🔴 CRITICAL - WEEK 4 MISSING COMPONENTS:**  
+~~5. **BarcodeGenerator**: Barcode creation and management interface~~ ✅ **COMPLETE**
+6. **MediaUploader**: Image/document upload and management
+7. **VariantForm**: Individual variant creation and editing
+
+**🔴 CRITICAL - API INTEGRATION:**
+8. **Replace ALL mock API calls**: Connect frontend forms to backend controllers
+9. **Form functionality**: Make Create buttons actually work
+10. **Error handling**: Proper API error handling and validation
+
+**🟡 HIGH PRIORITY - WEEK 5-6 MISSING COMPONENTS:**
+11. **SupplierItemForm**: Supplier-item relationship management
+12. **CatalogSearch**: Advanced search with filters and facets  
+13. **ImportWizard**: Bulk import/export functionality
 
 ---
 
@@ -1097,7 +1171,70 @@ src/components/catalog/
 - User training and documentation
 - Go-live support and monitoring
 
-### Post-Deployment (Week 13+)
+### Week 7: Advanced UI/UX Features & Tabular Form System
+
+**🎯 Sprint Goal**: Implement advanced UI/UX features including tabular form grouping system
+
+#### Frontend Tasks (Days 31-35)
+
+**Day 31-32: Tabular Form System Implementation**
+- ⏳ **Tabular Form Container Component**:
+  - Create `TabularFormProvider` context for managing multiple forms
+  - Implement tab-based form management with horizontal navigation
+  - Add form state persistence across tab switches
+  - Color-coded form groups (green for Catalog, blue for Inventory, red for Purchasing)
+- ⏳ **Form Integration**:
+  - Modify existing catalog forms to integrate with tabular system
+  - Implement form grouping by menu hierarchy
+  - Add tab headers with form titles and status indicators
+  - Handle form validation across multiple tabs
+
+**Day 33-34: Enhanced Form Management**
+- ⏳ **Tab Controls**:
+  - Add 'X' close button to each tab with confirmation dialogs
+  - Implement unsaved changes detection and warning prompts
+  - Add tab reordering and drag-and-drop functionality
+  - Create keyboard shortcuts for tab navigation (Ctrl+Tab, Ctrl+W)
+- ⏳ **State Management**:
+  - Implement form draft auto-save every 30 seconds
+  - Add form recovery on browser refresh/crash
+  - Create breadcrumb navigation within forms
+  - Add progress indicators for multi-step forms
+
+**Day 35: API Integration & Backend Support**
+- ⏳ **Backend API Development**:
+  - Create functional REST endpoints for all catalog operations
+  - Implement proper authentication and tenant isolation
+  - Add validation and error handling for form submissions
+  - Set up database transactions for complex operations
+
+#### Backend Tasks (Days 31-35)
+
+**Day 31-32: API Implementation**
+- ⏳ **Complete CRUD Operations**:
+  - Replace mock API calls with actual backend integration
+  - Implement Department, Category, Brand, Item, and Attribute controllers
+  - Add proper request/response validation
+  - Implement error handling and status codes
+
+**Day 33-35: Advanced Backend Features**
+- ⏳ **Business Logic Implementation**:
+  - Add hierarchical validation for category assignments
+  - Implement SKU generation and uniqueness validation
+  - Add bulk operations support for efficiency
+  - Create audit logging for all catalog changes
+
+#### **Week 7 Success Criteria**
+- ⏳ Tabular form system operational with color-coded grouping
+- ⏳ Multiple forms can be opened simultaneously within same menu group
+- ⏳ Unsaved changes detection and user warnings implemented
+- ⏳ All catalog CREATE operations functional with real API integration
+- ⏳ Form draft auto-save and recovery working
+- ⏳ Enhanced user experience with improved navigation
+
+---
+
+### Post-Deployment (Week 8+)
 - Performance monitoring and optimization
 - User feedback collection and feature requests
 - Integration with next phase features (navigation menu)
@@ -1170,3 +1307,289 @@ src/components/catalog/
 - ✅ Successful production deployment and user adoption
 
 **The plan provides a comprehensive roadmap for implementing a modern, scalable Item Master & Catalog Management system that integrates seamlessly with the existing inventory management platform and sets the foundation for advanced inventory features.**
+
+---
+
+# 9. Rules & Policies for CRUD on Item Master Modules
+
+> Applies to: **Department, Category, Brand, AttributeDefinition, AttributeSet, Item (style/parent), ItemVariant (SKU), UnitOfMeasure, UomConversion, ItemBarcode, ItemMedia, SupplierItem** and any future catalog entities surfaced via `/api/v1/catalog/**`.
+
+## 9.1 General Principles (All Entities)
+
+**G1. Source of truth & validation**
+- **Server-side validation is authoritative**; client performs *assistive* validation only.
+- Requests that fail validation MUST return **422 Unprocessable Entity** with a machine-readable error map (field → code, message, hint).
+- All writes occur inside a **single DB transaction**; partial writes are forbidden.
+
+**G2. Idempotency & concurrency**
+- **Idempotency keys** (UUID v4) required for all **create** and **bulk** operations via header `Idempotency-Key`; duplicates must return **200/201** with the original result.
+- **Optimistic concurrency** with `ETag` on read; clients send `If-Match` on **PUT/PATCH/DELETE**. Missing/invalid ETag → **409 Conflict**.
+
+**G3. RBAC & scope**
+- Enforce **role & scope** checks (tenant/location/department) before any DB read/write. Lack of permission → **403 Forbidden**.
+- Row-level access must include **tenant_id** predicate in every query.
+
+**G4. Audit & observability**
+- Create an immutable **AuditLog** record for **C/U/D** with: actor, entity, entity_id, before/after diffs, request_id, source_ip, user_agent, timestamp.
+- Emit a domain event on success (e.g., `catalog.item.created`, `catalog.variant.updated`) to the message bus.
+
+**G5. Soft delete & lifecycle**
+- Prefer **soft delete** or **lifecycle statuses** (Draft/Active/Discontinued) over hard delete when references exist.
+- Hard deletes are allowed only where **no references** exist and **no inventory/price/order** linkage is present.
+
+**G6. Internationalization & formatting**
+- Normalize all **codes** to upper-snake or tenant convention (configurable). Trim whitespace, collapse internal spaces, NFC-normalize strings.
+- Enforce locale-safe casing for user-visible names; store canonical name + search key.
+
+**G7. Bulk operations & imports**
+- Bulk endpoints must **validate all records**, produce a per-row result (success/failed with reasons), and never commit partial batches unless requested as **best-effort** mode.
+- On long-running bulk jobs, return **202 Accepted** + job status endpoint.
+
+---
+
+## 9.2 Create (C) Policies
+
+**C1. Uniqueness & keys (by entity)**  
+- **Department/Brand/Category:** `(tenant_id, code)` unique.  
+- **Item (style):** `(tenant_id, style_code)` unique; optional `(brand_id, external_ref)` unique when present.  
+- **ItemVariant (SKU):** `(tenant_id, sku)` unique; **must not collide** with any existing variant; system can auto-generate with reserved namespace.  
+- **ItemBarcode:** `(tenant_id, barcode)` global unique; per variant allow multiple barcodes, one **primary**; validate format by `barcode_type`.  
+- **UnitOfMeasure:** `(tenant_id, code)` unique; exactly **one base unit** per unit_type.  
+- **UomConversion:** unique pair `(from_uom_id, to_uom_id)`; must validate inverse consistency.  
+- **AttributeDefinition:** `(tenant_id, code)` unique; LIST types require `allowed_values`.  
+- **AttributeSet:** unique `(category_id, attribute_definition_id)`.
+
+**C2. Referential integrity**
+- All FK IDs must exist and belong to the **same tenant**.  
+- **Category** requires a valid parent within the same department (or null for root).  
+- **Item** requires an existing **brand** (optional if tenant policy allows) and **category**; **department_id** must match category→department.  
+- **ItemVariant** requires **item_id**; attribute combination must be **unique** under the item.
+
+**C3. Required core fields**  
+- **Item:** name, department_id, category_id, lifecycle `status ∈ {DRAFT, ACTIVE, DISCONTINUED}`, at least one pricing/costing field if tenant policy requires, optional GTIN if retail policy enforces.  
+- **ItemVariant:** sku (or auto generate), base_uom, at least one attribute value if the category’s AttributeSet marks it **required_for_variants**.  
+- **ItemBarcode:** barcode, barcode_type; **primary** flag allowed once per variant.  
+- **SupplierItem:** supplier_id, variant_id; optional moq, lead_time_days, unit_cost.
+
+**C4. Derived values & normalization**
+- Auto-generate **search_key** (ASCII-folded, lowercased) from name + codes.  
+- **SKU generation policy** (configurable): e.g., `{STYLE}-{COLOR}-{SIZE}` with collision avoidance via suffix.  
+- **Default price list** linkage for new variants if tenant has default.  
+- **Default UoM**: set base_uom from item default when variant not specified.
+
+**C5. Pre-commit validation**
+- **Category cycles** forbidden (detect DAG cycle).  
+- **Attribute compliance**: all **required** attributes present and type-valid; LIST values must be in `allowed_values`.  
+- **UoM**: base unit must exist; conversions must be positive; ensure inverse consistency `a→b = 1/(b→a)` within tolerance.  
+- **Barcode**: checksum validation for UPC/EAN where applicable; reject leading/trailing spaces; forbid look-alike characters if policy enabled.  
+- **Media**: file type & size within policy; virus scan pass (async completion allowed but block publication until safe).
+
+**UI prompts (Create)**  
+- On submit: inline errors per field + summary banner; focus first invalid field.  
+- On auto-generated values (e.g., SKU), show preview + “Accept/Customize” toggle.  
+- On potential duplicate (name/brand/category similarity ≥ threshold): warn with “Create anyway” gated by role.
+
+---
+
+## 9.3 Read (R) Policies
+
+- Default **pagination** and **sorting** (code asc, name asc). Max page size configurable; enforce cap server-side.  
+- Support **filters** by lifecycle, department/category/brand, attribute facets, price range, supplier, barcode, text search.  
+- Enforce **field-level masking** for cost/margin where role disallows.  
+- For **GET by barcode/SKU**, ensure constant-time lookup using index; return 404 if not found.  
+- Support **expand** query for related resources (e.g., `?expand=variants,media,barcodes`) with sensible limits.
+
+---
+
+## 9.4 Update (U) Policies
+
+**U1. Partial updates**  
+- Prefer **PATCH** (JSON Merge Patch or JSON Patch) for partial updates; **PUT** requires full entity state with ETag.
+
+**U2. Field mutability rules (high-impact fields)**
+- **Item.department_id/category_id**: allowed only in **DRAFT**; moving between departments must also validate attribute sets; require re-validation of all attributes; cascade reindex.  
+- **Item.status transitions:**  
+  - `DRAFT → ACTIVE`: run **Activation Gate** (9.4).  
+  - `ACTIVE → DISCONTINUED`: allowed if no open POs, no on-hand stock (or policy allows with deactivation flags).  
+  - `DISCONTINUED → ACTIVE`: require admin override & reason.
+- **ItemVariant.base_uom**: immutable post-activation; use conversions instead.  
+- **ItemBarcode.is_primary**: switching primary must **atomically** unset the previous primary.
+
+**U3. Collisions & duplicates**
+- Blocking uniqueness violations return **409 Conflict** with `conflict_on` and `conflicting_id`.  
+- For **attribute combinations** on variants, enforce unique tuple across the item.
+
+**U4. Activation Gate (pre-publish checks)**
+- Required fields present (GPA style checklist): name, category, brand (if mandatory), default/base UoM, at least one **ACTIVE** variant with **primary barcode** (if barcode policy = required), price present on at least one price list (if pricing module enabled).  
+- All validation passes (attributes, UoM conversions, media safety).  
+- Search index updated successfully (or queued); failure blocks activation unless degraded-mode feature flag is enabled.
+
+**U5. Versioning & history**
+- Maintain **version number** per entity; increment on each update; include in ETag.  
+- Provide **ChangeLog** view (who/when/what) with field diffs.
+
+**UI prompts (Update)**  
+- On changing **category/department**: modal warning explaining impacts (attributes need review, reports, assortments), require explicit confirmation.  
+- On **status** change: reason picker + optional comment; show downstream effects (e.g., removed from search, ordering blocked).  
+- Inline *“Re-validate attributes”* CTA after structural changes.
+
+---
+
+## 9.5 Delete (D) Policies
+
+**D1. Soft vs hard delete**
+- **Soft delete** pattern for: Item, ItemVariant, Category, Brand (set `status=DISCONTINUED` or `deleted_at` timestamp).  
+- **Hard delete** is allowed for leaf nodes/entities with **no references**:  
+  - Category without children and without items.  
+  - Barcode, Media, SupplierItem records (if not referenced in closed docs/history policies).  
+  - Items/Variants only if: no stock, no price entries, no purchase/sales/order lines, no audit/legal holds.
+
+**D2. Pre-delete guard checks**
+- Check **referential usage** (inventory_ledger, price_list_item, purchase_order lines, bundles/kits, media, barcodes).  
+- If any guard fails, return **409 Conflict** with `blockers[]` list and remediation hints (e.g., “Remove from bundle X”, “Zero inventory at Location Y”, “Unlink price list Z”).
+
+**UI prompts (Delete)**
+- Confirmation modal with consequences and counts (e.g., “This category has 12 child categories and 214 items…”).  
+- Offer **Safe Alternative**: mark DISCONTINUED instead of delete, with optional effective date.
+
+---
+
+## 9.6 Validation Catalogue (per Entity)
+
+> Codes are examples; implement as enum constants for API consistency.
+
+- **Department**  
+  - `code_required`, `code_format`, `code_unique`, `name_required`.  
+- **Category**  
+  - `name_required`, `code_unique`, `parent_invalid`, `cycle_detected`, `department_mismatch`.  
+- **Brand**  
+  - `code_unique`, `name_required`, `vendor_missing_if_required`.  
+- **AttributeDefinition**  
+  - `code_unique`, `data_type_invalid`, `allowed_values_required_for_list`.  
+- **AttributeSet**  
+  - `duplicate_attribute_in_set`, `attribute_not_found`, `category_not_found`.  
+- **Item (style)**  
+  - `name_required`, `style_code_unique`, `category_required`, `brand_required_if_policy`, `attributes_missing_required`, `status_transition_invalid`.  
+- **ItemVariant**  
+  - `sku_unique`, `attribute_combo_duplicate`, `base_uom_missing`, `cannot_change_base_uom_post_activation`.  
+- **UnitOfMeasure**  
+  - `code_unique`, `base_unit_conflict`, `unit_type_required`.  
+- **UomConversion**  
+  - `conversion_pair_duplicate`, `factor_non_positive`, `inverse_inconsistent`.  
+- **ItemBarcode**  
+  - `barcode_unique`, `barcode_invalid_checksum`, `primary_already_exists`.  
+- **ItemMedia**  
+  - `mime_type_disallowed`, `file_too_large`, `virus_scan_failed`.  
+- **SupplierItem**  
+  - `duplicate_supplier_variant`, `moq_invalid`, `lead_time_invalid`, `currency_unsupported`.
+
+---
+
+## 9.7 Error Contracts & UX Copy
+
+**API error envelope**
+```json
+{
+  "status": 422,
+  "error": "ValidationError",
+  "traceId": "req_123",
+  "errors": [
+    {"field": "code", "code": "code_unique", "message": "Code already exists", "hint": "Try a different code"},
+    {"field": "categoryId", "code": "department_mismatch", "message": "Category belongs to another department"}
+  ]
+}
+```
+
+**UI patterns**
+- **Inline field errors** + top banner summary; keep user’s input intact.  
+- **Toast** for success (Create/Update) containing key identifiers (SKU, barcode).  
+- **Blocking modal** for destructive actions with explicit typed confirmation when high impact (e.g., “DISCONTINUE”).
+
+---
+
+## 9.8 Performance & Indexing Policies
+
+- Create indexes to support hot paths:  
+  - `(tenant_id, code)` on code-bearing entities; `(tenant_id, sku)`, `(tenant_id, barcode)`, `(tenant_id, item_id)` on variants/barcodes/media.  
+  - Text search index on name/description; composite filters `(tenant_id, status, category_id, brand_id)`.
+- P95 for **create/update** under 200ms; **bulk** operations stream to background with progress.  
+- Cache hot reads (by SKU/barcode) with **Redis**; invalidate on write via events.
+
+---
+
+## 9.9 Domain Events (Examples)
+
+- `catalog.department.created|updated|deleted`  
+- `catalog.category.created|updated|deleted`  
+- `catalog.item.created|activated|discontinued|deleted`  
+- `catalog.variant.created|updated|deleted`  
+- `catalog.barcode.added|primary_changed|deleted`  
+- `catalog.media.added|deleted`  
+- `catalog.attribute.set.changed`
+
+**Payload norm**: include `tenantId`, `entity`, `entityId`, `version`, `timestamp`, `actor`, and minimal changed fields.
+
+---
+
+## 9.10 Sample Gherkin Acceptance Tests
+
+```gherkin
+Feature: Prevent duplicate barcodes across the tenant
+  Scenario: Creating a variant with an existing barcode
+    Given a variant exists with barcode "6291234567890" in tenant T1
+    When I add a new barcode "6291234567890" to another variant in tenant T1
+    Then the API responds 409 Conflict with code "barcode_unique"
+    And no new barcode record is created
+```
+
+```gherkin
+Feature: Activation gate verifies required data
+  Scenario: Activating an item missing primary barcode
+    Given an item has one variant without any barcode
+    When I change item status from DRAFT to ACTIVE
+    Then the API responds 422 with "activation_missing_primary_barcode"
+    And the item remains in DRAFT
+```
+
+```gherkin
+Feature: Optimistic concurrency protects updates
+  Scenario: Conflicting update on an item
+    Given I GET /items/{id} and receive ETag "v17"
+    And another user updates the item to "v18"
+    When I PUT /items/{id} with If-Match "v17"
+    Then I receive 409 Conflict with error "version_conflict"
+```
+
+```gherkin
+Feature: Safe deletion with guard checks
+  Scenario: Attempting to delete a category with children
+    Given category C has 3 child categories
+    When I DELETE /categories/{C}
+    Then I receive 409 Conflict with blocker "has_children"
+    And the response suggests moving or deleting children first
+```
+
+---
+
+## 9.11 Developer Hooks & Ordering
+
+- **Pre-validate → Normalize → Authorize → Business-rule validate → Persist → Index/Cache → Audit → Emit Events**  
+- Errors at any stage must **short-circuit** with consistent envelopes.
+
+---
+
+## 9.12 Configuration Flags
+
+- `requireBrandOnItem` (bool)  
+- `requirePrimaryBarcodeOnActivation` (bool)  
+- `autoGenerateSku` (bool + pattern)  
+- `allowHardDelete` (enum: NEVER | NO_REFERENCES | ADMIN_ONLY)  
+- `attributeStrictMode` (bool: block activation if optional attributes missing)  
+- `discontinueWithStockPolicy` (enum: BLOCK | ALLOW_WITH_WARNING | ALLOW_WITH_AUTO_UNLIST)
+
+---
+
+## 9.13 Documentation & API Contracts
+
+- OpenAPI must enumerate **error codes**, **validation constraints**, **ETag usage**, **Idempotency-Key**, and **domain events** per endpoint.
+- Include examples for **PATCH vs PUT**, **bulk import** payloads, and **422 error** shape.

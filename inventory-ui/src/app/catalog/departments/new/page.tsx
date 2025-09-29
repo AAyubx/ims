@@ -152,7 +152,7 @@ export default function NewDepartmentPage() {
                 value={form.code}
                 onChange={handleChange}
                 placeholder="e.g., ELEC, CLTH, HOME"
-                className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${
+                className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm text-gray-900 placeholder-gray-500 px-3 py-2 ${
                   errors.code ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
                 }`}
               />
@@ -176,7 +176,7 @@ export default function NewDepartmentPage() {
                 value={form.name}
                 onChange={handleChange}
                 placeholder="e.g., Electronics, Clothing, Home & Garden"
-                className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${
+                className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm text-gray-900 placeholder-gray-500 px-3 py-2 ${
                   errors.name ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
                 }`}
               />
@@ -198,7 +198,7 @@ export default function NewDepartmentPage() {
               value={form.description}
               onChange={handleChange}
               placeholder="Brief description of the department..."
-              className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${
+              className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm text-gray-900 placeholder-gray-500 px-3 py-2 ${
                 errors.description ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
               }`}
             />
@@ -222,7 +222,7 @@ export default function NewDepartmentPage() {
               value={form.manager}
               onChange={handleChange}
               placeholder="e.g., John Smith"
-              className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${
+              className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm text-gray-900 placeholder-gray-500 px-3 py-2 ${
                 errors.manager ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
               }`}
             />
