@@ -45,7 +45,7 @@ public class ItemBarcodeService {
                                    PackLevel packLevel, UnitOfMeasure unitOfMeasure, Long userId) {
         
         // Validate inputs
-        ItemVariant variant = itemVariantRepository.findByIdAndTenantId(variantId, tenantId)
+        ItemVariant variant = itemVariantRepository.findByIdAndTenant_Id(variantId, tenantId)
                 .orElseThrow(() -> new EntityNotFoundException("Item variant not found"));
         
         UserAccount user = userAccountRepository.findById(userId)

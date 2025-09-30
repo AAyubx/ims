@@ -206,18 +206,22 @@ public class ItemService {
 
     /**
      * Get items by supplier
+     * TODO: Implement when SupplierItem entity and relationships are implemented
      */
     @Transactional(readOnly = true)
     public List<Item> getItemsBySupplier(Long tenantId, Long supplierId) {
-        return itemRepository.findBySupplier(tenantId, supplierId);
+        // return itemRepository.findBySupplier(tenantId, supplierId);
+        throw new UnsupportedOperationException("Supplier functionality not yet implemented");
     }
 
     /**
      * Get items needing supplier setup
+     * TODO: Implement when SupplierItem entity and relationships are implemented
      */
     @Transactional(readOnly = true)
     public List<Item> getItemsNeedingSupplierSetup(Long tenantId) {
-        return itemRepository.findItemsNeedingSupplierSetup(tenantId);
+        // return itemRepository.findItemsNeedingSupplierSetup(tenantId);
+        throw new UnsupportedOperationException("Supplier functionality not yet implemented");
     }
 
     /**

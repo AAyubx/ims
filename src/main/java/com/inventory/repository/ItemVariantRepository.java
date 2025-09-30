@@ -17,37 +17,39 @@ public interface ItemVariantRepository extends JpaRepository<ItemVariant, Long> 
     /**
      * Find variant by ID and tenant
      */
-    Optional<ItemVariant> findByIdAndTenantId(Long id, Long tenantId);
+    Optional<ItemVariant> findByIdAndTenant_Id(Long id, Long tenantId);
 
     /**
      * Find all variants for a tenant with pagination
      */
-    Page<ItemVariant> findByTenantIdOrderByCreatedAtDesc(Long tenantId, Pageable pageable);
+    Page<ItemVariant> findByTenant_IdOrderByCreatedAtDesc(Long tenantId, Pageable pageable);
 
     /**
      * Find variants by item ID
+     * TODO: Add isDefault field to ItemVariant entity and implement this method
      */
-    List<ItemVariant> findByTenantIdAndItemIdOrderByIsDefaultDescCreatedAtAsc(Long tenantId, Long itemId);
+    List<ItemVariant> findByTenant_IdAndItem_IdOrderByCreatedAtAsc(Long tenantId, Long itemId);
 
     /**
      * Find default variant for an item
+     * TODO: Add isDefault field to ItemVariant entity and implement this method
      */
-    Optional<ItemVariant> findByTenantIdAndItemIdAndIsDefaultTrue(Long tenantId, Long itemId);
+    // Optional<ItemVariant> findByTenant_IdAndItem_IdAndIsDefaultTrue(Long tenantId, Long itemId);
 
     /**
      * Check if variant SKU exists (excluding specific ID)
      */
-    @Query("SELECT COUNT(v) > 0 FROM ItemVariant v WHERE v.tenantId = :tenantId AND v.sku = :sku AND (:id IS NULL OR v.id != :id)")
+    @Query("SELECT COUNT(v) > 0 FROM ItemVariant v WHERE v.tenant.id = :tenantId AND v.variantSku = :sku AND (:id IS NULL OR v.id != :id)")
     boolean existsByTenantIdAndSkuExcludingId(@Param("tenantId") Long tenantId, @Param("sku") String sku, @Param("id") Long id);
 
     /**
      * Find variants by SKU pattern
      */
-    @Query("SELECT v FROM ItemVariant v WHERE v.tenantId = :tenantId AND v.sku LIKE %:sku%")
+    @Query("SELECT v FROM ItemVariant v WHERE v.tenant.id = :tenantId AND v.variantSku LIKE CONCAT('%',:sku,'%')")
     List<ItemVariant> findBySkuContaining(@Param("tenantId") Long tenantId, @Param("sku") String sku);
 
     /**
      * Count variants for an item
      */
-    long countByTenantIdAndItemId(Long tenantId, Long itemId);
+    long countByTenant_IdAndItem_Id(Long tenantId, Long itemId);
 }

@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   mysql:
@@ -26,7 +26,7 @@ services:
     image: redis:7-alpine
     container_name: inventory-redis
     ports:
-      - "6379:6379"
+      - "6380:6379"
     volumes:
       - redis_data:/data
     networks:
@@ -55,7 +55,7 @@ services:
     image: rediscommander/redis-commander:latest
     container_name: inventory-redis-commander
     environment:
-      REDIS_HOSTS: local:redis:6379
+      REDIS_HOSTS: local:redis:6380
     ports:
       - "8081:8081"
     depends_on:
@@ -67,8 +67,8 @@ services:
     image: mailhog/mailhog:latest
     container_name: inventory-mailhog
     ports:
-      - "1026:1025"  # SMTP port
-      - "8025:8025"  # Web UI port
+      - "1026:1025" # SMTP port
+      - "8025:8025" # Web UI port
     networks:
       - inventory-network
     healthcheck:
